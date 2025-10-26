@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lazy Loading Test - StepGallery</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    
+    .instructions {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      border-left: 4px solid #667eea;
+    }
+    
+    .instructions h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+    
+    .instructions ol {
+      margin-left: 20px;
+    }
+    
+    .instructions li {
+      margin: 10px 0;
+    }
+    
+    .spacer {
+      height: 500px;
+      background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 1.2em;
+      border-radius: 8px;
+    }
+    
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .gallery-item {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+    }
+    
+    .gallery-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .gallery-item img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      background: #e0e0e0;
+    }
+    
+    .gallery-item-info {
+      padding: 15px;
+    }
+    
+    .gallery-item-info h3 {
+      color: #333;
+      margin-bottom: 5px;
+      font-size: 1em;
+    }
+    
+    .gallery-item-info p {
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #667eea;
+      color: white;
+      border-radius: 4px;
+      font-size: 0.8em;
+      margin-top: 5px;
+    }
+    
+    .badge.native {
+      background: #28a745;
+    }
+    
+    .badge.data-src {
+      background: #ffc107;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🚀 Lazy Loading Test Gallery</h1>
+    <p>Testing IntersectionObserver-based lazy loading improvements</p>
+  </div>
+
+  <div class="instructions">
+    <h2>📋 Testing Instructions</h2>
+    <ol>
+      <li>This page contains three types of lazy-loaded images:
+        <ul>
+          <li><strong>Native lazy loading</strong> (loading="lazy" attribute)</li>
+          <li><strong>data-src lazy loading</strong> (traditional approach)</li>
+          <li><strong>Mixed approach</strong> (both techniques)</li>
+        </ul>
+      </li>
+      <li>Images are spread across the page with large spacers to test scrolling</li>
+      <li>Click the StepGallery extension icon to open the side panel</li>
+      <li>Click "Extract Images" or start pagination</li>
+      <li>The new IntersectionObserver approach should:
+        <ul>
+          <li>Scroll through the page automatically</li>
+          <li>Trigger native lazy loading as images enter viewport</li>
+          <li>Capture the populated src attributes</li>
+          <li>Also fallback to data-src attributes when needed</li>
+        </ul>
+      </li>
+      <li>Expected: All ~30 images should be extracted successfully</li>
+    </ol>
+  </div>
+
+  <h2 style="text-align: center; color: #667eea; margin: 30px 0;">Section 1: Native Lazy Loading</h2>
+  <div class="gallery" id="gallery1"></div>
+  
+  <div class="spacer">⬇️ Scroll down to load more images ⬇️</div>
+  
+  <h2 style="text-align: center; color: #667eea; margin: 30px 0;">Section 2: Data-src Lazy Loading</h2>
+  <div class="gallery" id="gallery2"></div>
+  
+  <div class="spacer">⬇️ Keep scrolling... ⬇️</div>
+  
+  <h2 style="text-align: center; color: #667eea; margin: 30px 0;">Section 3: Mixed Approach</h2>
+  <div class="gallery" id="gallery3"></div>
+  
+  <div class="spacer">🎉 End of page 🎉</div>
+
+  <script>
+    // Create native lazy loading images
+    function createNativeLazyImages() {
+      const gallery = document.getElementById('gallery1');
+      for (let i = 1; i <= 10; i++) {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.innerHTML = `
+          <img src="https://picsum.photos/400/300?random=${i}" 
+               alt="Native Lazy Image ${i}" 
+               loading="lazy">
+          <div class="gallery-item-info">
+            <h3>Native Lazy Image #${i}</h3>
+            <p>Uses loading="lazy" attribute</p>
+            <span class="badge native">Native</span>
+          </div>
+        `;
+        gallery.appendChild(item);
+      }
+    }
+    
+    // Create data-src lazy loading images
+    function createDataSrcLazyImages() {
+      const gallery = document.getElementById('gallery2');
+      for (let i = 11; i <= 20; i++) {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.innerHTML = `
+          <img data-src="https://picsum.photos/400/300?random=${i}" 
+               src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e0e0e0' width='400' height='300'/%3E%3C/svg%3E"
+               alt="Data-src Lazy Image ${i}">
+          <div class="gallery-item-info">
+            <h3>Data-src Lazy Image #${i}</h3>
+            <p>Uses data-src attribute</p>
+            <span class="badge data-src">data-src</span>
+          </div>
+        `;
+        gallery.appendChild(item);
+      }
+      
+      // Simulate lazy loading with IntersectionObserver
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            if (img.dataset.src) {
+              img.src = img.dataset.src;
+              observer.unobserve(img);
+            }
+          }
+        });
+      });
+      
+      gallery.querySelectorAll('img').forEach(img => observer.observe(img));
+    }
+    
+    // Create mixed approach images
+    function createMixedImages() {
+      const gallery = document.getElementById('gallery3');
+      for (let i = 21; i <= 30; i++) {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        const useNative = i % 2 === 0;
+        
+        if (useNative) {
+          item.innerHTML = `
+            <img src="https://picsum.photos/400/300?random=${i}" 
+                 alt="Mixed Image ${i}" 
+                 loading="lazy">
+            <div class="gallery-item-info">
+              <h3>Mixed Image #${i}</h3>
+              <p>Native lazy loading</p>
+              <span class="badge native">Native</span>
+            </div>
+          `;
+        } else {
+          item.innerHTML = `
+            <img data-src="https://picsum.photos/400/300?random=${i}" 
+                 data-lazy="https://picsum.photos/400/300?random=${i}"
+                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23e0e0e0' width='400' height='300'/%3E%3C/svg%3E"
+                 alt="Mixed Image ${i}">
+            <div class="gallery-item-info">
+              <h3>Mixed Image #${i}</h3>
+              <p>Data-src lazy loading</p>
+              <span class="badge data-src">data-src</span>
+            </div>
+          `;
+        }
+        gallery.appendChild(item);
+      }
+      
+      // Simulate lazy loading for data-src images
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            if (img.dataset.src) {
+              img.src = img.dataset.src;
+              observer.unobserve(img);
+            }
+          }
+        });
+      });
+      
+      gallery.querySelectorAll('img[data-src]').forEach(img => observer.observe(img));
+    }
+    
+    // Initialize galleries
+    createNativeLazyImages();
+    createDataSrcLazyImages();
+    createMixedImages();
+    
+    console.log('Lazy loading test page initialized with 30 images');
+  </script>
+</body>
+</html>
