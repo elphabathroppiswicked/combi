@@ -319,7 +319,7 @@ async function startPagination() {
 async function stopPagination() {
   try {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs[0]) {
+    if (tabs[0] && isContentScriptCompatibleUrl(tabs[0].url)) {
       await chrome.tabs.sendMessage(tabs[0].id, {
         type: MESSAGE_TYPES.CORE_PAGINATION_STOP
       });
@@ -331,6 +331,9 @@ async function stopPagination() {
     document.getElementById('stopPagination').disabled = true;
 
   } catch (error) {
+    isPaginating = false;
+    document.getElementById('startPagination').disabled = false;
+    document.getElementById('stopPagination').disabled = true;
     console.error('Error stopping pagination:', error);
   }
 }
