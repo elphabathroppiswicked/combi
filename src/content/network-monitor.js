@@ -1,10 +1,9 @@
-import { Logger } from '../shared/logger.js';
+import { Logger } from '../shared/this.logger.js';
 import { MESSAGE_TYPES } from '../shared/constants.js';
-
-const logger = new Logger('NetworkMonitor');
 
 export class NetworkMonitor {
   constructor(options = {}) {
+    this.logger = new Logger('NetworkMonitor');
     this.capturedResponses = [];
     this.latestPaginationInfo = null;
     this.detectedEndpoints = [];
@@ -13,7 +12,7 @@ export class NetworkMonitor {
 
   inject() {
     if (this.isInjected) {
-      logger.debug('Network monitor already injected');
+      this.this.logger.debug('Network monitor already injected');
       return;
     }
 
@@ -83,7 +82,7 @@ export class NetworkMonitor {
     script.remove();
     
     this.isInjected = true;
-    logger.log('Network monitor injected');
+    this.logger.log('Network monitor injected');
 
     this.setupListener();
   }
@@ -104,27 +103,27 @@ export class NetworkMonitor {
     
     if (!this.detectedEndpoints.includes(url)) {
       this.detectedEndpoints.push(url);
-      logger.log('API endpoint detected:', url);
+      this.logger.log('API endpoint detected:', url);
       
       try {
         chrome.runtime.sendMessage({
           type: MESSAGE_TYPES.API_ENDPOINT_DETECTED,
           endpoint: url
-        }).catch(err => logger.debug('Error sending API endpoint:', err));
+        }).catch(err => this.logger.debug('Error sending API endpoint:', err));
       } catch (error) {
-        logger.debug('Error notifying API endpoint:', error);
+        this.logger.debug('Error notifying API endpoint:', error);
       }
     }
 
     const paginationInfo = this.extractPaginationInfo(data);
     if (paginationInfo) {
       this.latestPaginationInfo = { ...paginationInfo, endpoint: url };
-      logger.log('Pagination info extracted:', this.latestPaginationInfo);
+      this.logger.log('Pagination info extracted:', this.latestPaginationInfo);
     }
 
     const imageUrls = this.extractImageUrlsFromJSON(data);
     if (imageUrls.length > 0) {
-      logger.log(`Found ${imageUrls.length} images in API response`);
+      this.logger.log(`Found ${imageUrls.length} images in API response`);
       
       try {
         chrome.runtime.sendMessage({
@@ -132,9 +131,9 @@ export class NetworkMonitor {
           url: url,
           imageCount: imageUrls.length,
           paginationInfo: paginationInfo
-        }).catch(err => logger.debug('Error sending API response:', err));
+        }).catch(err => this.logger.debug('Error sending API response:', err));
       } catch (error) {
-        logger.debug('Error notifying API response:', error);
+        this.logger.debug('Error notifying API response:', error);
       }
     }
   }
@@ -259,7 +258,7 @@ export class NetworkMonitor {
   clear() {
     this.capturedResponses = [];
     this.latestPaginationInfo = null;
-    logger.log('Network monitor cleared');
+    this.logger.log('Network monitor cleared');
   }
 }
 

@@ -1,11 +1,11 @@
-import { Logger } from '../shared/logger.js';
+import { Logger } from '../shared/contentLogger.js';
 import { FEATURES, MESSAGE_TYPES } from '../shared/constants.js';
 import { GalleryDetector } from './gallery-detector.js';
 import { ImageExtractor } from './image-extractor.js';
 import { PaginationEngine } from './pagination-engine.js';
 import { NetworkMonitor } from './network-monitor.js';
 
-const logger = new Logger('Content');
+const contentLogger = new Logger('Content');
 
 let galleryDetector = null;
 let imageExtractor = null;
@@ -13,7 +13,7 @@ let paginationEngine = null;
 let networkMonitor = null;
 
 function initialize() {
-  logger.log('Initializing StepGallery content script');
+  contentLogger.log('Initializing StepGallery content script');
 
   galleryDetector = new GalleryDetector();
   imageExtractor = new ImageExtractor();
@@ -29,9 +29,9 @@ function initialize() {
   try {
     chrome.runtime.sendMessage({
       type: MESSAGE_TYPES.CORE_INIT
-    }).catch(err => logger.debug('Error sending init message:', err));
+    }).catch(err => contentLogger.debug('Error sending init message:', err));
   } catch (error) {
-    logger.debug('Error sending init:', error);
+    contentLogger.debug('Error sending init:', error);
   }
 
   setupMessageListeners();
@@ -40,12 +40,12 @@ function initialize() {
     loadDebugPanel();
   }
 
-  logger.log('StepGallery content script initialized');
+  contentLogger.log('StepGallery content script initialized');
 }
 
 function setupMessageListeners() {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    logger.debug('Received message:', message.type);
+    contentLogger.debug('Received message:', message.type);
 
     try {
       if (message.type === MESSAGE_TYPES.CORE_PAGINATION_START) {
@@ -78,7 +78,7 @@ function setupMessageListeners() {
         return true;
       }
     } catch (error) {
-      logger.error('Error handling message:', error);
+      contentLogger.error('Error handling message:', error);
       sendResponse({ success: false, error: error.message });
     }
 
@@ -89,7 +89,7 @@ function setupMessageListeners() {
 async function handlePaginationStart(message, sendResponse) {
   try {
     const method = message.method || message.data?.method || 'auto';
-    logger.log(`Starting pagination with method: ${method}`);
+    contentLogger.log(`Starting pagination with method: ${method}`);
 
     const stored = await chrome.storage.local.get('settings');
     if (stored.settings) {
@@ -123,18 +123,18 @@ async function handlePaginationStart(message, sendResponse) {
 
     sendResponse({ success: true });
   } catch (error) {
-    logger.error('Error starting pagination:', error);
+    contentLogger.error('Error starting pagination:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
 
 function handlePaginationStop(message, sendResponse) {
   try {
-    logger.log('Stopping pagination');
+    contentLogger.log('Stopping pagination');
     paginationEngine.stop();
     sendResponse({ success: true });
   } catch (error) {
-    logger.error('Error stopping pagination:', error);
+    contentLogger.error('Error stopping pagination:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -144,7 +144,7 @@ async function handleDetectGallery(message, sendResponse) {
     const detection = await galleryDetector.detectGallery();
     sendResponse({ success: true, detection: detection });
   } catch (error) {
-    logger.error('Error detecting gallery:', error);
+    contentLogger.error('Error detecting gallery:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -167,7 +167,7 @@ async function handleExtractImages(message, sendResponse) {
     
     sendResponse({ success: true, images: images });
   } catch (error) {
-    logger.error('Error extracting images:', error);
+    contentLogger.error('Error extracting images:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -177,7 +177,7 @@ function handleGetPaginationInfo(message, sendResponse) {
     const paginationInfo = networkMonitor.getLatestPaginationInfo();
     sendResponse({ success: true, paginationInfo: paginationInfo });
   } catch (error) {
-    logger.error('Error getting pagination info:', error);
+    contentLogger.error('Error getting pagination info:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -189,13 +189,13 @@ function handleClearData(message, sendResponse) {
     paginationEngine.contentHasher.clear();
     sendResponse({ success: true });
   } catch (error) {
-    logger.error('Error clearing data:', error);
+    contentLogger.error('Error clearing data:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
 
 function loadDebugPanel() {
-  logger.log('Loading debug panel (dev mode)');
+  contentLogger.log('Loading debug panel (dev mode)');
   
 }
 

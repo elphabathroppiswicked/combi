@@ -1,11 +1,10 @@
-import { Logger } from '../shared/logger.js';
+import { Logger } from '../shared/this.logger.js';
 import { InputSanitizer } from '../shared/input-sanitizer.js';
 import { MESSAGE_TYPES } from '../shared/constants.js';
 
-const logger = new Logger('ImageExtractor');
-
 export class ImageExtractor {
   constructor(options = {}) {
+    this.logger = new Logger('ImageExtractor');
     this.minWidth = options.minWidth || 100;
     this.minHeight = options.minHeight || 100;
     this.sanitizer = new InputSanitizer();
@@ -53,7 +52,7 @@ export class ImageExtractor {
       }
     });
 
-    logger.log(`Extracted ${images.length} images from page ${this.pageNumber}`);
+    this.logger.log(`Extracted ${images.length} images from page ${this.pageNumber}`);
     
     if (images.length > 0) {
       this.notifyImagesFound(images);
@@ -98,7 +97,7 @@ export class ImageExtractor {
         extractedAt: new Date().toISOString()
       };
     } catch (error) {
-      logger.error('Error extracting from img tag:', error);
+      this.logger.error('Error extracting from img tag:', error);
       return null;
     }
   }
@@ -138,7 +137,7 @@ export class ImageExtractor {
         extractedAt: new Date().toISOString()
       };
     } catch (error) {
-      logger.error('Error extracting from lazy element:', error);
+      this.logger.error('Error extracting from lazy element:', error);
       return null;
     }
   }
@@ -188,7 +187,7 @@ export class ImageExtractor {
           }
         }
       } catch (error) {
-        logger.debug('Error extracting background image:', error);
+        this.logger.debug('Error extracting background image:', error);
       }
     });
 
@@ -227,7 +226,7 @@ export class ImageExtractor {
           });
         }
       } catch (error) {
-        logger.debug('Error extracting from link:', error);
+        this.logger.debug('Error extracting from link:', error);
       }
     });
 
@@ -246,7 +245,7 @@ export class ImageExtractor {
     const scrollDelay = options.scrollDelay || 500;
     const maxScrollSteps = options.maxScrollSteps || 20;
     
-    logger.log('Starting lazy loading trigger with IntersectionObserver');
+    this.logger.log('Starting lazy loading trigger with IntersectionObserver');
     
     // Initialize IntersectionObserver if not already done
     this.initializeLazyLoadObserver();
@@ -265,7 +264,7 @@ export class ImageExtractor {
     // Scroll through the page to trigger lazy loading
     await this.scrollToTriggerLazyLoad(scrollDelay, maxScrollSteps);
     
-    logger.log(`Lazy loading triggered, ${this.lazyLoadedImages.size} images loaded`);
+    this.logger.log(`Lazy loading triggered, ${this.lazyLoadedImages.size} images loaded`);
   }
 
   /**
@@ -298,7 +297,7 @@ export class ImageExtractor {
       });
     }, observerOptions);
     
-    logger.debug('IntersectionObserver initialized for lazy loading');
+    this.logger.debug('IntersectionObserver initialized for lazy loading');
   }
 
   /**
@@ -317,7 +316,7 @@ export class ImageExtractor {
         if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
           const newSrc = img.src;
           if (newSrc && !newSrc.startsWith('data:') && newSrc.length > 10) {
-            logger.debug(`Lazy-loaded image src populated: ${newSrc.substring(0, 50)}...`);
+            this.logger.debug(`Lazy-loaded image src populated: ${newSrc.substring(0, 50)}...`);
             observer.disconnect();
           }
         }
@@ -375,7 +374,7 @@ export class ImageExtractor {
     // Wait for scroll to complete
     await this.waitForContent(300);
     
-    logger.debug(`Completed ${steps} scroll steps to trigger lazy loading`);
+    this.logger.debug(`Completed ${steps} scroll steps to trigger lazy loading`);
   }
 
   /**
@@ -449,9 +448,9 @@ export class ImageExtractor {
       chrome.runtime.sendMessage({
         type: MESSAGE_TYPES.CORE_IMAGES_FOUND,
         images: images
-      }).catch(err => logger.debug('Error sending images found:', err));
+      }).catch(err => this.logger.debug('Error sending images found:', err));
     } catch (error) {
-      logger.debug('Error notifying images found:', error);
+      this.logger.debug('Error notifying images found:', error);
     }
   }
 }

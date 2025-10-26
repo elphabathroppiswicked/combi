@@ -1,9 +1,8 @@
 import { Logger } from './logger.js';
 
-const logger = new Logger('ContentHasher');
-
 export class ContentHasher {
   constructor(options = {}) {
+    this.logger = new Logger('ContentHasher');
     this.lookbackSize = options.lookbackSize || 10;
     this.hashHistory = [];
   }
@@ -70,7 +69,7 @@ export class ContentHasher {
 
   clear() {
     this.hashHistory = [];
-    logger.log('Hash history cleared');
+    this.logger.log('Hash history cleared');
   }
 
   getHistory() {
