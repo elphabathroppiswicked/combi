@@ -232,7 +232,10 @@ async function requestGalleryDetection() {
   try {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tabs[0]) {
-      await chrome.tabs.sendMessage(tabs[0].id, { type: 'detect-gallery' });
+      const response = await chrome.tabs.sendMessage(tabs[0].id, { type: 'detect-gallery' });
+      if (response && response.success && response.detection) {
+        updateGalleryStatus(response.detection);
+      }
     }
   } catch (error) {
     console.error('Error requesting gallery detection:', error);
