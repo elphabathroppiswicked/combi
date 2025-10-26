@@ -11,9 +11,12 @@ export class ImageExtractor {
     this.sanitizer = new InputSanitizer();
     this.extractedUrls = new Set();
     this.pageNumber = 1;
+    this.lazyLoadObserver = null;
+    this.observedImages = new Set();
+    this.lazyLoadedImages = new Set();
   }
 
-  extractImages() {
+  async extractImages() {
     const images = [];
     
     const imgElements = document.querySelectorAll('img');
@@ -231,6 +234,173 @@ export class ImageExtractor {
     return images;
   }
 
+  /**
+   * Triggers native lazy loading by scrolling through the page using IntersectionObserver.
+   * This is a more robust approach than just looking for data-src attributes.
+   * @param {Object} options - Configuration options
+   * @param {number} options.scrollDelay - Delay between scroll steps in ms (default: 500)
+   * @param {number} options.maxScrollSteps - Maximum number of scroll steps (default: 20)
+   * @returns {Promise<void>}
+   */
+  async triggerLazyLoading(options = {}) {
+    const scrollDelay = options.scrollDelay || 500;
+    const maxScrollSteps = options.maxScrollSteps || 20;
+    
+    logger.log('Starting lazy loading trigger with IntersectionObserver');
+    
+    // Initialize IntersectionObserver if not already done
+    this.initializeLazyLoadObserver();
+    
+    // Find all images on the page
+    const allImages = document.querySelectorAll('img');
+    
+    // Observe all images
+    allImages.forEach(img => {
+      if (!this.observedImages.has(img)) {
+        this.lazyLoadObserver.observe(img);
+        this.observedImages.add(img);
+      }
+    });
+    
+    // Scroll through the page to trigger lazy loading
+    await this.scrollToTriggerLazyLoad(scrollDelay, maxScrollSteps);
+    
+    logger.log(`Lazy loading triggered, ${this.lazyLoadedImages.size} images loaded`);
+  }
+
+  /**
+   * Initialize the IntersectionObserver for detecting lazy-loaded images
+   */
+  initializeLazyLoadObserver() {
+    if (this.lazyLoadObserver) {
+      return;
+    }
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '50px',
+      threshold: 0.01
+    };
+    
+    this.lazyLoadObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          
+          // Track that this image entered the viewport
+          if (!this.lazyLoadedImages.has(img)) {
+            this.lazyLoadedImages.add(img);
+            
+            // Monitor for src attribute changes
+            this.monitorImageSrcChange(img);
+          }
+        }
+      });
+    }, observerOptions);
+    
+    logger.debug('IntersectionObserver initialized for lazy loading');
+  }
+
+  /**
+   * Monitor an image element for src attribute changes (when lazy loading populates it)
+   * @param {HTMLImageElement} img - The image element to monitor
+   */
+  monitorImageSrcChange(img) {
+    // If image already has a src, nothing to do
+    if (img.src && !img.src.startsWith('data:') && img.src.length > 10) {
+      return;
+    }
+    
+    // Use MutationObserver to detect when src is populated
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+          const newSrc = img.src;
+          if (newSrc && !newSrc.startsWith('data:') && newSrc.length > 10) {
+            logger.debug(`Lazy-loaded image src populated: ${newSrc.substring(0, 50)}...`);
+            observer.disconnect();
+          }
+        }
+      });
+    });
+    
+    observer.observe(img, {
+      attributes: true,
+      attributeFilter: ['src']
+    });
+    
+    // Disconnect after 10 seconds to avoid memory leaks
+    setTimeout(() => observer.disconnect(), 10000);
+  }
+
+  /**
+   * Scroll through the page gradually to trigger lazy loading
+   * @param {number} scrollDelay - Delay between scroll steps in ms
+   * @param {number} maxScrollSteps - Maximum number of scroll steps
+   * @returns {Promise<void>}
+   */
+  async scrollToTriggerLazyLoad(scrollDelay, maxScrollSteps) {
+    const scrollHeight = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight
+    );
+    const viewportHeight = window.innerHeight;
+    const scrollStep = viewportHeight * 0.75; // Scroll 75% of viewport each time
+    let currentScroll = window.scrollY;
+    let steps = 0;
+    
+    // Save original scroll position
+    const originalScroll = currentScroll;
+    
+    while (currentScroll < scrollHeight - viewportHeight && steps < maxScrollSteps) {
+      // Scroll down
+      currentScroll += scrollStep;
+      window.scrollTo({
+        top: currentScroll,
+        behavior: 'smooth'
+      });
+      
+      // Wait for images to load
+      await this.waitForContent(scrollDelay);
+      
+      steps++;
+    }
+    
+    // Restore original scroll position
+    window.scrollTo({
+      top: originalScroll,
+      behavior: 'smooth'
+    });
+    
+    // Wait for scroll to complete
+    await this.waitForContent(300);
+    
+    logger.debug(`Completed ${steps} scroll steps to trigger lazy loading`);
+  }
+
+  /**
+   * Extract images after triggering lazy loading
+   * This combines the new IntersectionObserver approach with the existing data-src fallback
+   * @param {Object} options - Configuration options
+   * @returns {Promise<Array>} Array of extracted images
+   */
+  async extractImagesWithLazyLoading(options = {}) {
+    // First, trigger lazy loading by scrolling
+    await this.triggerLazyLoading(options);
+    
+    // Then extract images normally (now with populated src attributes)
+    return await this.extractImages();
+  }
+
+  /**
+   * Helper to wait for a specified time
+   * @param {number} ms - Milliseconds to wait
+   * @returns {Promise<void>}
+   */
+  waitForContent(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   extractFilename(url) {
     try {
       const urlObj = new URL(url);
@@ -264,6 +434,14 @@ export class ImageExtractor {
   reset() {
     this.extractedUrls.clear();
     this.pageNumber = 1;
+    this.observedImages.clear();
+    this.lazyLoadedImages.clear();
+    
+    // Disconnect and cleanup the IntersectionObserver
+    if (this.lazyLoadObserver) {
+      this.lazyLoadObserver.disconnect();
+      this.lazyLoadObserver = null;
+    }
   }
 
   notifyImagesFound(images) {

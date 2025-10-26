@@ -98,15 +98,23 @@ async function handlePaginationStart(message, sendResponse) {
 
     imageExtractor.reset();
     
-    imageExtractor.extractImages();
+    // Use the new lazy loading approach for initial extraction
+    await imageExtractor.extractImagesWithLazyLoading({
+      scrollDelay: stored.settings?.scrollDelay || 500,
+      maxScrollSteps: 20
+    });
 
     setTimeout(async () => {
       await paginationEngine.start(method);
     }, 500);
 
-    const intervalId = setInterval(() => {
+    const intervalId = setInterval(async () => {
       if (paginationEngine.isActive) {
-        imageExtractor.extractImages();
+        // Use lazy loading extraction during pagination as well
+        await imageExtractor.extractImagesWithLazyLoading({
+          scrollDelay: stored.settings?.scrollDelay || 500,
+          maxScrollSteps: 10 // Fewer steps during pagination to be faster
+        });
         imageExtractor.incrementPage();
       } else {
         clearInterval(intervalId);
@@ -141,9 +149,22 @@ async function handleDetectGallery(message, sendResponse) {
   }
 }
 
-function handleExtractImages(message, sendResponse) {
+async function handleExtractImages(message, sendResponse) {
   try {
-    const images = imageExtractor.extractImages();
+    // Support both normal extraction and lazy loading extraction
+    const useLazyLoading = message.useLazyLoading !== false; // Default to true
+    
+    let images;
+    if (useLazyLoading) {
+      const stored = await chrome.storage.local.get('settings');
+      images = await imageExtractor.extractImagesWithLazyLoading({
+        scrollDelay: stored.settings?.scrollDelay || 500,
+        maxScrollSteps: 20
+      });
+    } else {
+      images = await imageExtractor.extractImages();
+    }
+    
     sendResponse({ success: true, images: images });
   } catch (error) {
     logger.error('Error extracting images:', error);
