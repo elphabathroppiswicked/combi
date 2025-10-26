@@ -352,11 +352,11 @@ export class ImageExtractor {
     const originalScroll = currentScroll;
     
     while (currentScroll < scrollHeight - viewportHeight && steps < maxScrollSteps) {
-      // Scroll down
+      // Scroll down instantly to avoid jumpy behavior
       currentScroll += scrollStep;
       window.scrollTo({
         top: currentScroll,
-        behavior: 'smooth'
+        behavior: 'auto'
       });
       
       // Wait for images to load
@@ -365,14 +365,14 @@ export class ImageExtractor {
       steps++;
     }
     
-    // Restore original scroll position
+    // Restore original scroll position instantly for consistency
     window.scrollTo({
       top: originalScroll,
-      behavior: 'smooth'
+      behavior: 'auto'
     });
     
-    // Wait for scroll to complete
-    await this.waitForContent(300);
+    // Brief wait to ensure scroll completes
+    await this.waitForContent(100);
     
     this.logger.debug(`Completed ${steps} scroll steps to trigger lazy loading`);
   }

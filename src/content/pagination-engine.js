@@ -418,7 +418,7 @@ export class PaginationEngine {
 
       window.scrollTo({
         top: targetScroll,
-        behavior: 'smooth'
+        behavior: 'auto'
       });
 
       this.logger.log('Scrolled to bottom for infinite scroll');

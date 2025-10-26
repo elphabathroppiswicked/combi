@@ -1054,11 +1054,11 @@
       const originalScroll = currentScroll;
 
       while (currentScroll < scrollHeight - viewportHeight && steps < maxScrollSteps) {
-        // Scroll down
+        // Scroll down instantly to avoid jumpy behavior
         currentScroll += scrollStep;
         window.scrollTo({
           top: currentScroll,
-          behavior: 'smooth'
+          behavior: 'auto'
         });
 
         // Wait for images to load
@@ -1067,14 +1067,14 @@
         steps++;
       }
 
-      // Restore original scroll position
+      // Restore original scroll position instantly for consistency
       window.scrollTo({
         top: originalScroll,
-        behavior: 'smooth'
+        behavior: 'auto'
       });
 
-      // Wait for scroll to complete
-      await this.waitForContent(300);
+      // Brief wait to ensure scroll completes
+      await this.waitForContent(100);
 
       this.logger.debug(`Completed ${steps} scroll steps to trigger lazy loading`);
     }
@@ -1834,7 +1834,7 @@
 
         window.scrollTo({
           top: targetScroll,
-          behavior: 'smooth'
+          behavior: 'auto'
         });
 
         this.logger.log('Scrolled to bottom for infinite scroll');
