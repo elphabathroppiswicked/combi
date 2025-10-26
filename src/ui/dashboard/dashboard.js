@@ -228,18 +228,59 @@ async function saveSettings() {
   }
 }
 
-async function requestGalleryDetection() {
+function isContentScriptCompatibleUrl(url) {
+  if (!url) return false;
+  
+  // Content scripts cannot run on these URLs
+  const incompatibleProtocols = ['chrome:', 'chrome-extension:', 'edge:', 'about:', 'data:', 'file:'];
+  const incompatiblePages = ['chrome.google.com/webstore'];
+  
+  // Check protocol
+  if (incompatibleProtocols.some(protocol => url.startsWith(protocol))) {
+    return false;
+  }
+  
+  // Check specific pages
+  if (incompatiblePages.some(page => url.includes(page))) {
+    return false;
+  }
+  
+  return true;
+}
+
+async function requestGalleryDetection(retryCount = 0) {
+  const messageEl = document.getElementById('galleryMessage');
+  
   try {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs[0]) {
-      const response = await chrome.tabs.sendMessage(tabs[0].id, { type: 'detect-gallery' });
-      if (response && response.success && response.detection) {
-        updateGalleryStatus(response.detection);
-      }
+    
+    if (!tabs[0]) {
+      messageEl.textContent = 'No active tab found';
+      return;
+    }
+    
+    // Check if the tab URL is compatible with content scripts
+    if (!isContentScriptCompatibleUrl(tabs[0].url)) {
+      messageEl.textContent = 'Gallery detection not available on this page';
+      return;
+    }
+    
+    const response = await chrome.tabs.sendMessage(tabs[0].id, { type: 'detect-gallery' });
+    
+    if (response && response.success && response.detection) {
+      updateGalleryStatus(response.detection);
+    } else {
+      messageEl.textContent = 'No gallery detected';
     }
   } catch (error) {
-    console.error('Error requesting gallery detection:', error);
-    document.getElementById('galleryMessage').textContent = 'Could not detect gallery on this page';
+    // Content script might not be ready yet, retry once after a delay
+    if (retryCount === 0 && error.message.includes('Could not establish connection')) {
+      setTimeout(() => requestGalleryDetection(1), 1000);
+      messageEl.textContent = 'Detecting gallery...';
+    } else {
+      // After retry or other error, show appropriate message
+      messageEl.textContent = 'Could not detect gallery on this page';
+    }
   }
 }
 
@@ -248,6 +289,12 @@ async function startPagination() {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs[0]) {
       alert('No active tab found');
+      return;
+    }
+    
+    // Check if the tab URL is compatible with content scripts
+    if (!isContentScriptCompatibleUrl(tabs[0].url)) {
+      alert('Pagination is not available on this page type (browser internal pages, extensions, etc.)');
       return;
     }
 
@@ -263,6 +310,7 @@ async function startPagination() {
     document.getElementById('stopPagination').disabled = false;
 
   } catch (error) {
+    isPaginating = false;
     console.error('Error starting pagination:', error);
     alert('Error starting pagination: ' + error.message);
   }
@@ -271,7 +319,7 @@ async function startPagination() {
 async function stopPagination() {
   try {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs[0]) {
+    if (tabs[0] && isContentScriptCompatibleUrl(tabs[0].url)) {
       await chrome.tabs.sendMessage(tabs[0].id, {
         type: MESSAGE_TYPES.CORE_PAGINATION_STOP
       });
@@ -283,6 +331,9 @@ async function stopPagination() {
     document.getElementById('stopPagination').disabled = true;
 
   } catch (error) {
+    isPaginating = false;
+    document.getElementById('startPagination').disabled = false;
+    document.getElementById('stopPagination').disabled = true;
     console.error('Error stopping pagination:', error);
   }
 }
