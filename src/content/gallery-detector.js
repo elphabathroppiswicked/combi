@@ -1,4 +1,4 @@
-import { Logger } from '../shared/this.logger.js';
+import { Logger } from '../shared/logger.js';
 import { MESSAGE_TYPES } from '../shared/constants.js';
 
 export class GalleryDetector {

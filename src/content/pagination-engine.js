@@ -1,4 +1,4 @@
-import { Logger } from '../shared/this.logger.js';
+import { Logger } from '../shared/logger.js';
 import { ContentHasher } from '../shared/content-hasher.js';
 import { PAGINATION_CONFIG, MESSAGE_TYPES } from '../shared/constants.js';
 

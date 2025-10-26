@@ -1,4 +1,4 @@
-import { Logger } from '../shared/this.logger.js';
+import { Logger } from '../shared/logger.js';
 import { MESSAGE_TYPES } from '../shared/constants.js';
 
 export class NetworkMonitor {
@@ -12,7 +12,7 @@ export class NetworkMonitor {
 
   inject() {
     if (this.isInjected) {
-      this.this.logger.debug('Network monitor already injected');
+      this.logger.debug('Network monitor already injected');
       return;
     }
 

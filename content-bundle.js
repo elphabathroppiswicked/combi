@@ -451,7 +451,7 @@
 
     inject() {
       if (this.isInjected) {
-        this.this.logger.debug('Network monitor already injected');
+        this.logger.debug('Network monitor already injected');
         return;
       }
 
