@@ -54,6 +54,10 @@ export class MessageRouter {
         return this.handleBatchResponse(message, sender, sendResponse);
       }
 
+      if (message.type === 'download/file') {
+        return this.handleFileDownload(message, sender, sendResponse);
+      }
+
       if (message.type.startsWith('export/')) {
         return this.handleExport(message, sender, sendResponse);
       }
@@ -191,6 +195,25 @@ export class MessageRouter {
       sendResponse({ success: false, error: error.message });
     }
     return false;
+  }
+
+  async handleFileDownload(message, sender, sendResponse) {
+    try {
+      const { url, filename, saveAs } = message.data;
+      
+      const downloadId = await chrome.downloads.download({
+        url,
+        filename,
+        saveAs: saveAs !== undefined ? saveAs : true
+      });
+
+      logger.log(`File download started: ${filename} (ID: ${downloadId})`);
+      sendResponse({ success: true, downloadId: downloadId });
+    } catch (error) {
+      logger.error('Error starting file download:', error);
+      sendResponse({ success: false, error: error.message });
+    }
+    return true;
   }
 
   async handleExport(message, sender, sendResponse) {
