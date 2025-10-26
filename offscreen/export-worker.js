@@ -279,13 +279,23 @@ function escapeHtml(text) {
 function downloadFile(blob, filename) {
   const url = URL.createObjectURL(blob);
   
-  chrome.downloads.download({
-    url: url,
-    filename: filename,
-    saveAs: true
-  }, (downloadId) => {
-    console.log(`Download started: ${filename} (ID: ${downloadId})`);
+  // Send message to service worker to initiate download
+  // chrome.downloads is not available in offscreen documents
+  chrome.runtime.sendMessage({
+    type: 'download/file',
+    data: {
+      url: url,
+      filename: filename,
+      saveAs: true
+    }
+  }, (response) => {
+    if (response && response.success) {
+      console.log(`Download started: ${filename} (ID: ${response.downloadId})`);
+    } else {
+      console.error(`Download failed: ${filename}`, response?.error);
+    }
     
+    // Revoke the object URL after a delay to allow the download to start
     setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 60000);
