@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "StepGallery - Unified Gallery Scraper",
   "version": "3.0.0",
-  "description": "Professional image gallery detection, pagination, and export with advanced features. Combines smart pagination detection with multi-format export (CSV, Excel, JSON, HTML).",
+  "description": "Professional image gallery detection, pagination, and CSV export with advanced features. Combines smart pagination detection with CSV export for spreadsheets.",
   
   "permissions": [
     "activeTab",

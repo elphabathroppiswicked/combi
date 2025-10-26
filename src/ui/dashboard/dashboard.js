@@ -9,8 +9,7 @@ let settings = {
   paginationMethod: 'auto',
   filenamePattern: '*num-3*-*name*.*ext*',
   exportFormats: ['csv'],
-  exportFields: ['filename', 'fileUrl', 'dimensions', 'sourcePage'],
-  exportMode: 'full'
+  exportFields: ['filename', 'fileUrl', 'dimensions', 'sourcePage']
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -73,36 +72,7 @@ function applySettings() {
     document.getElementById('downloadFolder').value = settings.downloadFolder;
   }
   
-  if (settings.exportMode !== undefined) {
-    const modeRadio = document.querySelector(`input[name="exportMode"][value="${settings.exportMode}"]`);
-    if (modeRadio) {
-      modeRadio.checked = true;
-    }
-    toggleExportMode(settings.exportMode);
-  }
-  
   updateFilenameExample();
-}
-
-function toggleExportMode(mode) {
-  const formatSelection = document.querySelector('.format-selection');
-  const fieldSelection = document.querySelector('.field-selection');
-  const csvOnlyMessage = document.querySelector('.csv-only-message');
-  
-  if (mode === 'csv-only') {
-    document.getElementById('exportCSV').checked = true;
-    document.getElementById('exportXLSX').checked = false;
-    document.getElementById('exportJSON').checked = false;
-    document.getElementById('exportHTML').checked = false;
-    
-    formatSelection.style.display = 'none';
-    fieldSelection.style.display = 'none';
-    csvOnlyMessage.style.display = 'block';
-  } else {
-    formatSelection.style.display = 'flex';
-    fieldSelection.style.display = 'block';
-    csvOnlyMessage.style.display = 'none';
-  }
 }
 
 function initializeUI() {
@@ -171,14 +141,6 @@ function setupEventListeners() {
     settings.downloadFolder = folder;
     validateFolderPath(folder);
     saveSettings();
-  });
-
-  document.querySelectorAll('input[name="exportMode"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-      settings.exportMode = e.target.value;
-      toggleExportMode(e.target.value);
-      saveSettings();
-    });
   });
 
   const numericInputs = [
@@ -342,51 +304,26 @@ async function exportAllFormats() {
     return;
   }
 
-  const isCsvOnlyMode = settings.exportMode === 'csv-only';
-  
-  let formats = [];
-  let fields = [];
-  
-  if (isCsvOnlyMode) {
-    formats = ['csv'];
-    fields = ['filename', 'fileUrl', 'thumbnailUrl', 'dimensions', 'caption', 'sourcePage', 'pageNumber', 'extractedAt'];
-  } else {
-    if (document.getElementById('exportCSV').checked) formats.push('csv');
-    if (document.getElementById('exportXLSX').checked) formats.push('xlsx');
-    if (document.getElementById('exportJSON').checked) formats.push('json');
-    if (document.getElementById('exportHTML').checked) formats.push('html');
+  // Get selected fields
+  const fields = Array.from(document.querySelectorAll('.export-field:checked'))
+    .map(cb => cb.value);
 
-    if (formats.length === 0) {
-      alert('Please select at least one export format');
-      return;
-    }
-
-    fields = Array.from(document.querySelectorAll('.export-field:checked'))
-      .map(cb => cb.value);
-
-    if (fields.length === 0) {
-      alert('Please select at least one field to export');
-      return;
-    }
+  if (fields.length === 0) {
+    alert('Please select at least one field to export');
+    return;
   }
 
   try {
-    for (const format of formats) {
-      await chrome.runtime.sendMessage({
-        type: `export/${format}`,
-        data: {
-          images: collectedImages,
-          fields: fields,
-          filename: `stepgallery-export-${Date.now()}`
-        }
-      });
-    }
+    await chrome.runtime.sendMessage({
+      type: 'export/csv',
+      data: {
+        images: collectedImages,
+        fields: fields,
+        filename: `stepgallery-export-${Date.now()}`
+      }
+    });
 
-    if (isCsvOnlyMode) {
-      alert(`✓ CSV export complete!\n\nExported ${collectedImages.length} image(s) with all fields included.`);
-    } else {
-      alert(`Successfully exported ${formats.length} format(s)`);
-    }
+    alert(`✓ CSV export complete!\n\nExported ${collectedImages.length} image(s).`);
   } catch (error) {
     console.error('Error exporting:', error);
     alert('Error exporting: ' + error.message);

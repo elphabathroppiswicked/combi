@@ -80,24 +80,10 @@
     <section class="export-section">
       <h2>Export Options</h2>
       
-      <div class="export-mode-selection">
-        <label><input type="radio" name="exportMode" value="full" checked> Full Export Mode</label>
-        <label><input type="radio" name="exportMode" value="csv-only"> CSV-Only Mode</label>
-        <p class="mode-description">
-          <strong>Full mode:</strong> Export to multiple formats (CSV, Excel, JSON, HTML)<br>
-          <strong>CSV-only mode:</strong> Quick export to CSV only (hides other options for simplicity)
-        </p>
-      </div>
-
-      <div class="csv-only-message" style="display: none;">
-        📋 CSV-Only Mode Active - Quick export with all fields included
-      </div>
-
       <div class="format-selection">
-        <label><input type="checkbox" id="exportCSV" class="export-format" checked> CSV</label>
-        <label><input type="checkbox" id="exportXLSX" class="export-format"> Excel (XLSX)</label>
-        <label><input type="checkbox" id="exportJSON" class="export-format"> JSON</label>
-        <label><input type="checkbox" id="exportHTML" class="export-format"> HTML Report</label>
+        <p class="mode-description">
+          Export data to CSV format (Comma-Separated Values) which can be opened in any spreadsheet application.
+        </p>
       </div>
 
       <div class="field-selection">
@@ -114,7 +100,7 @@
         </div>
       </div>
 
-      <button id="exportAllFormats" class="btn btn-primary btn-large">📊 Export Selected Formats</button>
+      <button id="exportAllFormats" class="btn btn-primary btn-large">📊 Export to CSV</button>
     </section>
 
     <section class="download-section">
