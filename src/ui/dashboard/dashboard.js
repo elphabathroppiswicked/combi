@@ -274,7 +274,7 @@ async function requestGalleryDetection(retryCount = 0) {
     }
   } catch (error) {
     // Content script might not be ready yet, retry once after a delay
-    if (retryCount === 0 && error.message.includes('Could not establish connection')) {
+    if (retryCount === 0 && error.message && error.message.includes('Receiving end does not exist')) {
       setTimeout(() => requestGalleryDetection(1), 1000);
       messageEl.textContent = 'Detecting gallery...';
     } else {
@@ -311,7 +311,10 @@ async function startPagination() {
 
   } catch (error) {
     isPaginating = false;
-    console.error('Error starting pagination:', error);
+    // Don't log expected connection errors to console (content script not available)
+    if (!error.message || !error.message.includes('Receiving end does not exist')) {
+      console.error('Error starting pagination:', error);
+    }
     alert('Error starting pagination: ' + error.message);
   }
 }
@@ -334,7 +337,10 @@ async function stopPagination() {
     isPaginating = false;
     document.getElementById('startPagination').disabled = false;
     document.getElementById('stopPagination').disabled = true;
-    console.error('Error stopping pagination:', error);
+    // Don't log expected connection errors to console (content script not available)
+    if (!error.message || !error.message.includes('Receiving end does not exist')) {
+      console.error('Error stopping pagination:', error);
+    }
   }
 }
 
