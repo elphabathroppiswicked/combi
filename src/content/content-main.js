@@ -1,4 +1,4 @@
-import { Logger } from '../shared/contentLogger.js';
+import { Logger } from '../shared/logger.js';
 import { FEATURES, MESSAGE_TYPES } from '../shared/constants.js';
 import { GalleryDetector } from './gallery-detector.js';
 import { ImageExtractor } from './image-extractor.js';
