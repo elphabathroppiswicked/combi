@@ -43,6 +43,14 @@ StepGallery is a professional Chrome extension that merges the best features of 
 - No external API calls or tracking
 - Full MV3 compliance
 
+### 🚀 Advanced Lazy Loading (New!)
+- **IntersectionObserver-based detection** - Automatically scrolls through page to trigger native lazy loading
+- **Smart image monitoring** - Watches for `src` attribute changes when images enter viewport
+- **Dual approach** - Uses both native browser lazy loading and traditional data-src detection
+- **Configurable scrolling** - Adjustable scroll delay and step count for different page types
+- **Memory efficient** - Proper cleanup of observers to prevent leaks
+- See [LAZY_LOADING_IMPROVEMENTS.md](LAZY_LOADING_IMPROVEMENTS.md) for details
+
 ## Architecture
 
 ```
@@ -323,7 +331,16 @@ Default settings (customizable via UI):
 - Some websites with complex anti-scraping measures may not work
 - API-based pagination requires network monitoring (automatic)
 - Maximum file size for exports: 50MB (configurable)
-- Some lazy-loaded images may require manual scrolling first
+- ~~Some lazy-loaded images may require manual scrolling first~~ **FIXED: Now handles lazy loading automatically with IntersectionObserver**
+
+## Recent Improvements
+
+### Version 3.0.1 - Enhanced Lazy Loading
+- Implemented IntersectionObserver-based lazy loading detection
+- Automatically scrolls through pages to trigger native lazy loading
+- Monitors images for src attribute changes
+- Maintains backward compatibility with data-src detection
+- See [LAZY_LOADING_IMPROVEMENTS.md](LAZY_LOADING_IMPROVEMENTS.md) for technical details
 
 ## License & Credits
 
