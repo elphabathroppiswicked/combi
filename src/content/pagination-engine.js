@@ -2,10 +2,9 @@ import { Logger } from '../shared/logger.js';
 import { ContentHasher } from '../shared/content-hasher.js';
 import { PAGINATION_CONFIG, MESSAGE_TYPES } from '../shared/constants.js';
 
-const logger = new Logger('PaginationEngine');
-
 export class PaginationEngine {
   constructor(options = {}) {
+    this.logger = new Logger('PaginationEngine');
     this.method = options.method || 'auto';
     this.maxPages = options.maxPages || PAGINATION_CONFIG.MAX_PAGES;
     this.currentPage = 1;
@@ -31,7 +30,7 @@ export class PaginationEngine {
 
   async start(method = 'auto') {
     if (this.isActive) {
-      logger.warn('Pagination already active');
+      this.logger.warn('Pagination already active');
       return;
     }
 
@@ -41,18 +40,18 @@ export class PaginationEngine {
     this.currentPage = 1;
     this.contentHasher.clear();
 
-    logger.log(`Starting pagination with method: ${this.method}`);
+    this.logger.log(`Starting pagination with method: ${this.method}`);
 
     try {
       while (this.isActive && this.attempts < PAGINATION_CONFIG.MAX_ATTEMPTS && this.currentPage < this.maxPages) {
         const beforeHash = await this.contentHasher.hashContent(document.body);
         
-        logger.log(`Page ${this.currentPage}, attempt ${this.attempts + 1}`);
+        this.logger.log(`Page ${this.currentPage}, attempt ${this.attempts + 1}`);
         
         const success = await this.executeMethod();
         
         if (!success) {
-          logger.log('Pagination method returned false, stopping');
+          this.logger.log('Pagination method returned false, stopping');
           break;
         }
 
@@ -63,7 +62,7 @@ export class PaginationEngine {
         const afterHash = await this.contentHasher.hashContent(document.body);
         
         if (this.contentHasher.isDuplicate(afterHash)) {
-          logger.log('Duplicate content detected, stopping pagination');
+          this.logger.log('Duplicate content detected, stopping pagination');
           break;
         }
         
@@ -76,7 +75,7 @@ export class PaginationEngine {
         await this.waitForContent(paginationDelay);
       }
     } catch (error) {
-      logger.error('Pagination error:', error);
+      this.logger.error('Pagination error:', error);
     }
 
     this.stop();
@@ -101,7 +100,7 @@ export class PaginationEngine {
       return await methodFunc.call(this);
     }
 
-    logger.warn(`Unknown pagination method: ${this.method}`);
+    this.logger.warn(`Unknown pagination method: ${this.method}`);
     return false;
   }
 
@@ -109,26 +108,26 @@ export class PaginationEngine {
     const methods = await this.detectPaginationMethods();
 
     if (methods.nextButton.available) {
-      logger.log('Using Next Button method');
+      this.logger.log('Using Next Button method');
       return await this.paginateNextButton(methods.nextButton);
     } else if (methods.loadMore.available) {
-      logger.log('Using Load More method');
+      this.logger.log('Using Load More method');
       return await this.paginateLoadMore(methods.loadMore);
     } else if (methods.arrow.available) {
-      logger.log('Using Arrow method');
+      this.logger.log('Using Arrow method');
       return await this.paginateArrow(methods.arrow);
     } else if (methods.urlPattern.available) {
-      logger.log('Using URL Pattern method');
+      this.logger.log('Using URL Pattern method');
       return await this.paginateUrlPattern(methods.urlPattern);
     } else if (methods.api.available) {
-      logger.log('Using API method');
+      this.logger.log('Using API method');
       return await this.paginateAPI(methods.api);
     } else if (methods.infiniteScroll.available) {
-      logger.log('Using Infinite Scroll method');
+      this.logger.log('Using Infinite Scroll method');
       return await this.paginateInfiniteScroll();
     }
 
-    logger.warn('No pagination method detected');
+    this.logger.warn('No pagination method detected');
     return false;
   }
 
@@ -171,7 +170,7 @@ export class PaginationEngine {
           };
         }
       } catch (e) {
-        logger.debug(`Error checking selector ${selector}:`, e);
+        this.logger.debug(`Error checking selector ${selector}:`, e);
       }
     }
 
@@ -225,7 +224,7 @@ export class PaginationEngine {
           };
         }
       } catch (e) {
-        logger.debug(`Error checking selector ${selector}:`, e);
+        this.logger.debug(`Error checking selector ${selector}:`, e);
       }
     }
 
@@ -275,7 +274,7 @@ export class PaginationEngine {
           };
         }
       } catch (e) {
-        logger.debug(`Error checking selector ${selector}:`, e);
+        this.logger.debug(`Error checking selector ${selector}:`, e);
       }
     }
 
@@ -322,7 +321,7 @@ export class PaginationEngine {
         }
       }
     } catch (error) {
-      logger.error('Error detecting URL pattern:', error);
+      this.logger.error('Error detecting URL pattern:', error);
     }
 
     return { available: false };
@@ -372,10 +371,10 @@ export class PaginationEngine {
       await this.waitForContent(500);
       
       element.click();
-      logger.log('Clicked next button');
+      this.logger.log('Clicked next button');
       return true;
     } catch (error) {
-      logger.error('Error clicking next button:', error);
+      this.logger.error('Error clicking next button:', error);
       return false;
     }
   }
@@ -398,10 +397,10 @@ export class PaginationEngine {
       await this.waitForContent(500);
       
       element.click();
-      logger.log('Clicked load more button');
+      this.logger.log('Clicked load more button');
       return true;
     } catch (error) {
-      logger.error('Error clicking load more button:', error);
+      this.logger.error('Error clicking load more button:', error);
       return false;
     }
   }
@@ -413,7 +412,7 @@ export class PaginationEngine {
       const targetScroll = scrollTarget.scrollHeight - window.innerHeight;
 
       if (currentScroll >= targetScroll - 100) {
-        logger.log('Already at bottom of page');
+        this.logger.log('Already at bottom of page');
         return false;
       }
 
@@ -422,11 +421,11 @@ export class PaginationEngine {
         behavior: 'smooth'
       });
 
-      logger.log('Scrolled to bottom for infinite scroll');
+      this.logger.log('Scrolled to bottom for infinite scroll');
       await this.waitForContent(1000);
       return true;
     } catch (error) {
-      logger.error('Error performing infinite scroll:', error);
+      this.logger.error('Error performing infinite scroll:', error);
       return false;
     }
   }
@@ -449,10 +448,10 @@ export class PaginationEngine {
       await this.waitForContent(500);
       
       element.click();
-      logger.log('Clicked arrow navigation');
+      this.logger.log('Clicked arrow navigation');
       return true;
     } catch (error) {
-      logger.error('Error clicking arrow:', error);
+      this.logger.error('Error clicking arrow:', error);
       return false;
     }
   }
@@ -480,19 +479,19 @@ export class PaginationEngine {
       }
 
       if (nextUrl && nextUrl.href !== currentUrl.href) {
-        logger.log(`Navigating to: ${nextUrl.href}`);
+        this.logger.log(`Navigating to: ${nextUrl.href}`);
         window.location.href = nextUrl.href;
         return true;
       }
     } catch (error) {
-      logger.error('Error navigating to next page via URL pattern:', error);
+      this.logger.error('Error navigating to next page via URL pattern:', error);
     }
 
     return false;
   }
 
   async paginateAPI(method = null) {
-    logger.log('API pagination requires network monitoring integration');
+    this.logger.log('API pagination requires network monitoring integration');
     return false;
   }
 
@@ -515,7 +514,7 @@ export class PaginationEngine {
   stop() {
     this.isActive = false;
     this.sendStatus('complete');
-    logger.log(`Pagination complete. Pages processed: ${this.currentPage}, Attempts: ${this.attempts}`);
+    this.logger.log(`Pagination complete. Pages processed: ${this.currentPage}, Attempts: ${this.attempts}`);
   }
 
   sendStatus(status) {
@@ -531,9 +530,9 @@ export class PaginationEngine {
             (this.attempts >= PAGINATION_CONFIG.MAX_ATTEMPTS ? 'Max attempts reached' : 'Pagination complete') :
             'Paginating...'
         }
-      }).catch(err => logger.debug('Error sending status:', err));
+      }).catch(err => this.logger.debug('Error sending status:', err));
     } catch (error) {
-      logger.debug('Error sending pagination status:', error);
+      this.logger.debug('Error sending pagination status:', error);
     }
   }
 }

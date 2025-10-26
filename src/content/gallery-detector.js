@@ -1,16 +1,15 @@
 import { Logger } from '../shared/logger.js';
 import { MESSAGE_TYPES } from '../shared/constants.js';
 
-const logger = new Logger('GalleryDetector');
-
 export class GalleryDetector {
   constructor(options = {}) {
+    this.logger = new Logger('GalleryDetector');
     this.minImagesForGallery = options.minImagesForGallery || 10;
     this.imageToTextRatioThreshold = options.imageToTextRatioThreshold || 0.3;
   }
 
   async detectGallery() {
-    logger.log('Starting gallery detection');
+    this.logger.log('Starting gallery detection');
 
     const detection = {
       isGallery: false,
@@ -25,15 +24,15 @@ export class GalleryDetector {
     detection.imageCount = images.length;
 
     if (images.length < this.minImagesForGallery) {
-      logger.log(`Not enough images (${images.length}) for gallery detection`);
+      this.logger.log(`Not enough images (${images.length}) for gallery detection`);
       return detection;
     }
 
     const imageToTextRatio = this.calculateImageToTextRatio(images);
-    logger.log(`Image to text ratio: ${imageToTextRatio.toFixed(2)}`);
+    this.logger.log(`Image to text ratio: ${imageToTextRatio.toFixed(2)}`);
 
     if (imageToTextRatio < this.imageToTextRatioThreshold) {
-      logger.log('Image to text ratio too low for gallery');
+      this.logger.log('Image to text ratio too low for gallery');
       return detection;
     }
 
@@ -63,7 +62,7 @@ export class GalleryDetector {
 
     detection.paginationMethods = this.detectPaginationIndicators();
 
-    logger.log('Gallery detection complete:', detection);
+    this.logger.log('Gallery detection complete:', detection);
     
     this.notifyGalleryDetected(detection);
 
@@ -250,9 +249,9 @@ export class GalleryDetector {
       chrome.runtime.sendMessage({
         type: MESSAGE_TYPES.CORE_GALLERY_DETECTED,
         data: detection
-      }).catch(err => logger.debug('Error sending gallery detection:', err));
+      }).catch(err => this.logger.debug('Error sending gallery detection:', err));
     } catch (error) {
-      logger.debug('Error notifying gallery detected:', error);
+      this.logger.debug('Error notifying gallery detected:', error);
     }
   }
 }

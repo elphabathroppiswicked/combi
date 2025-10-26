@@ -149,10 +149,9 @@
 
 
   // ===== src/shared/input-sanitizer.js =====
-  const logger = new Logger('InputSanitizer');
-
   class InputSanitizer {
     constructor(options = {}) {
+      this.logger = new Logger('InputSanitizer');
       this.options = {
         maxSelectorLength: options.maxSelectorLength || 10000,
         allowedSelectorChars: options.allowedSelectorChars || /^[a-zA-Z0-9\s\-_#.\[\]=:()>+~*,"'|^$]+$/,
@@ -215,28 +214,28 @@
         }
 
         if (selector.length > this.options.maxSelectorLength) {
-          logger.warn('Selector exceeds maximum length:', selector.length);
+          this.logger.warn('Selector exceeds maximum length:', selector.length);
           this.stats.threatsBlocked++;
           return '';
         }
 
         for (const pattern of this.dangerousPatterns.selector) {
           if (pattern.test(selector)) {
-            logger.warn('Dangerous pattern detected in selector:', pattern);
+            this.logger.warn('Dangerous pattern detected in selector:', pattern);
             this.stats.threatsBlocked++;
             return '';
           }
         }
 
         if (!this.options.allowedSelectorChars.test(selector)) {
-          logger.warn('Selector contains invalid characters');
+          this.logger.warn('Selector contains invalid characters');
           this.stats.threatsBlocked++;
           return '';
         }
 
         return selector;
       } catch (error) {
-        logger.error('Error sanitizing selector:', error);
+        this.logger.error('Error sanitizing selector:', error);
         return '';
       }
     }
@@ -256,14 +255,14 @@
         }
 
         if (url.length > this.options.maxUrlLength) {
-          logger.warn('URL exceeds maximum length:', url.length);
+          this.logger.warn('URL exceeds maximum length:', url.length);
           this.stats.threatsBlocked++;
           return '';
         }
 
         for (const pattern of this.dangerousPatterns.url) {
           if (pattern.test(url)) {
-            logger.warn('Dangerous pattern detected in URL:', pattern);
+            this.logger.warn('Dangerous pattern detected in URL:', pattern);
             this.stats.threatsBlocked++;
             return '';
           }
@@ -273,7 +272,7 @@
           const urlObj = new URL(url);
 
           if (!this.options.allowedProtocols.includes(urlObj.protocol)) {
-            logger.warn('URL protocol not allowed:', urlObj.protocol);
+            this.logger.warn('URL protocol not allowed:', urlObj.protocol);
             this.stats.threatsBlocked++;
             return '';
           }
@@ -284,12 +283,12 @@
             return url;
           }
 
-          logger.warn('Invalid URL format:', url);
+          this.logger.warn('Invalid URL format:', url);
           this.stats.threatsBlocked++;
           return '';
         }
       } catch (error) {
-        logger.error('Error sanitizing URL:', error);
+        this.logger.error('Error sanitizing URL:', error);
         return '';
       }
     }
@@ -310,7 +309,7 @@
 
         for (const pattern of this.dangerousPatterns.path) {
           if (pattern.test(filename)) {
-            logger.warn('Path traversal attempt detected in filename');
+            this.logger.warn('Path traversal attempt detected in filename');
             this.stats.threatsBlocked++;
             filename = filename.replace(pattern, '');
           }
@@ -326,7 +325,7 @@
 
         return filename || 'file';
       } catch (error) {
-        logger.error('Error sanitizing filename:', error);
+        this.logger.error('Error sanitizing filename:', error);
         return 'file';
       }
     }
@@ -361,10 +360,9 @@
 
 
   // ===== src/shared/content-hasher.js =====
-  const logger = new Logger('ContentHasher');
-
   class ContentHasher {
     constructor(options = {}) {
+      this.logger = new Logger('ContentHasher');
       this.lookbackSize = options.lookbackSize || 10;
       this.hashHistory = [];
     }
@@ -431,7 +429,7 @@
 
     clear() {
       this.hashHistory = [];
-      logger.log('Hash history cleared');
+      this.logger.log('Hash history cleared');
     }
 
     getHistory() {
@@ -442,10 +440,9 @@
 
 
   // ===== src/content/network-monitor.js =====
-  const logger = new Logger('NetworkMonitor');
-
   class NetworkMonitor {
     constructor(options = {}) {
+      this.logger = new Logger('NetworkMonitor');
       this.capturedResponses = [];
       this.latestPaginationInfo = null;
       this.detectedEndpoints = [];
@@ -454,7 +451,7 @@
 
     inject() {
       if (this.isInjected) {
-        logger.debug('Network monitor already injected');
+        this.logger.debug('Network monitor already injected');
         return;
       }
 
@@ -524,7 +521,7 @@
       script.remove();
 
       this.isInjected = true;
-      logger.log('Network monitor injected');
+      this.logger.log('Network monitor injected');
 
       this.setupListener();
     }
@@ -545,27 +542,27 @@
 
       if (!this.detectedEndpoints.includes(url)) {
         this.detectedEndpoints.push(url);
-        logger.log('API endpoint detected:', url);
+        this.logger.log('API endpoint detected:', url);
 
         try {
           chrome.runtime.sendMessage({
             type: MESSAGE_TYPES.API_ENDPOINT_DETECTED,
             endpoint: url
-          }).catch(err => logger.debug('Error sending API endpoint:', err));
+          }).catch(err => this.logger.debug('Error sending API endpoint:', err));
         } catch (error) {
-          logger.debug('Error notifying API endpoint:', error);
+          this.logger.debug('Error notifying API endpoint:', error);
         }
       }
 
       const paginationInfo = this.extractPaginationInfo(data);
       if (paginationInfo) {
         this.latestPaginationInfo = { ...paginationInfo, endpoint: url };
-        logger.log('Pagination info extracted:', this.latestPaginationInfo);
+        this.logger.log('Pagination info extracted:', this.latestPaginationInfo);
       }
 
       const imageUrls = this.extractImageUrlsFromJSON(data);
       if (imageUrls.length > 0) {
-        logger.log(`Found ${imageUrls.length} images in API response`);
+        this.logger.log(`Found ${imageUrls.length} images in API response`);
 
         try {
           chrome.runtime.sendMessage({
@@ -573,9 +570,9 @@
             url: url,
             imageCount: imageUrls.length,
             paginationInfo: paginationInfo
-          }).catch(err => logger.debug('Error sending API response:', err));
+          }).catch(err => this.logger.debug('Error sending API response:', err));
         } catch (error) {
-          logger.debug('Error notifying API response:', error);
+          this.logger.debug('Error notifying API response:', error);
         }
       }
     }
@@ -700,17 +697,16 @@
     clear() {
       this.capturedResponses = [];
       this.latestPaginationInfo = null;
-      logger.log('Network monitor cleared');
+      this.logger.log('Network monitor cleared');
     }
   }
 
 
 
   // ===== src/content/image-extractor.js =====
-  const logger = new Logger('ImageExtractor');
-
   class ImageExtractor {
     constructor(options = {}) {
+      this.logger = new Logger('ImageExtractor');
       this.minWidth = options.minWidth || 100;
       this.minHeight = options.minHeight || 100;
       this.sanitizer = new InputSanitizer();
@@ -758,7 +754,7 @@
         }
       });
 
-      logger.log(`Extracted ${images.length} images from page ${this.pageNumber}`);
+      this.logger.log(`Extracted ${images.length} images from page ${this.pageNumber}`);
 
       if (images.length > 0) {
         this.notifyImagesFound(images);
@@ -803,7 +799,7 @@
           extractedAt: new Date().toISOString()
         };
       } catch (error) {
-        logger.error('Error extracting from img tag:', error);
+        this.logger.error('Error extracting from img tag:', error);
         return null;
       }
     }
@@ -843,7 +839,7 @@
           extractedAt: new Date().toISOString()
         };
       } catch (error) {
-        logger.error('Error extracting from lazy element:', error);
+        this.logger.error('Error extracting from lazy element:', error);
         return null;
       }
     }
@@ -893,7 +889,7 @@
             }
           }
         } catch (error) {
-          logger.debug('Error extracting background image:', error);
+          this.logger.debug('Error extracting background image:', error);
         }
       });
 
@@ -932,7 +928,7 @@
             });
           }
         } catch (error) {
-          logger.debug('Error extracting from link:', error);
+          this.logger.debug('Error extracting from link:', error);
         }
       });
 
@@ -951,7 +947,7 @@
       const scrollDelay = options.scrollDelay || 500;
       const maxScrollSteps = options.maxScrollSteps || 20;
 
-      logger.log('Starting lazy loading trigger with IntersectionObserver');
+      this.logger.log('Starting lazy loading trigger with IntersectionObserver');
 
       // Initialize IntersectionObserver if not already done
       this.initializeLazyLoadObserver();
@@ -970,7 +966,7 @@
       // Scroll through the page to trigger lazy loading
       await this.scrollToTriggerLazyLoad(scrollDelay, maxScrollSteps);
 
-      logger.log(`Lazy loading triggered, ${this.lazyLoadedImages.size} images loaded`);
+      this.logger.log(`Lazy loading triggered, ${this.lazyLoadedImages.size} images loaded`);
     }
 
     /**
@@ -1003,7 +999,7 @@
         });
       }, observerOptions);
 
-      logger.debug('IntersectionObserver initialized for lazy loading');
+      this.logger.debug('IntersectionObserver initialized for lazy loading');
     }
 
     /**
@@ -1022,7 +1018,7 @@
           if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
             const newSrc = img.src;
             if (newSrc && !newSrc.startsWith('data:') && newSrc.length > 10) {
-              logger.debug(`Lazy-loaded image src populated: ${newSrc.substring(0, 50)}...`);
+              this.logger.debug(`Lazy-loaded image src populated: ${newSrc.substring(0, 50)}...`);
               observer.disconnect();
             }
           }
@@ -1080,7 +1076,7 @@
       // Wait for scroll to complete
       await this.waitForContent(300);
 
-      logger.debug(`Completed ${steps} scroll steps to trigger lazy loading`);
+      this.logger.debug(`Completed ${steps} scroll steps to trigger lazy loading`);
     }
 
     /**
@@ -1154,9 +1150,9 @@
         chrome.runtime.sendMessage({
           type: MESSAGE_TYPES.CORE_IMAGES_FOUND,
           images: images
-        }).catch(err => logger.debug('Error sending images found:', err));
+        }).catch(err => this.logger.debug('Error sending images found:', err));
       } catch (error) {
-        logger.debug('Error notifying images found:', error);
+        this.logger.debug('Error notifying images found:', error);
       }
     }
   }
@@ -1164,16 +1160,15 @@
 
 
   // ===== src/content/gallery-detector.js =====
-  const logger = new Logger('GalleryDetector');
-
   class GalleryDetector {
     constructor(options = {}) {
+      this.logger = new Logger('GalleryDetector');
       this.minImagesForGallery = options.minImagesForGallery || 10;
       this.imageToTextRatioThreshold = options.imageToTextRatioThreshold || 0.3;
     }
 
     async detectGallery() {
-      logger.log('Starting gallery detection');
+      this.logger.log('Starting gallery detection');
 
       const detection = {
         isGallery: false,
@@ -1188,15 +1183,15 @@
       detection.imageCount = images.length;
 
       if (images.length < this.minImagesForGallery) {
-        logger.log(`Not enough images (${images.length}) for gallery detection`);
+        this.logger.log(`Not enough images (${images.length}) for gallery detection`);
         return detection;
       }
 
       const imageToTextRatio = this.calculateImageToTextRatio(images);
-      logger.log(`Image to text ratio: ${imageToTextRatio.toFixed(2)}`);
+      this.logger.log(`Image to text ratio: ${imageToTextRatio.toFixed(2)}`);
 
       if (imageToTextRatio < this.imageToTextRatioThreshold) {
-        logger.log('Image to text ratio too low for gallery');
+        this.logger.log('Image to text ratio too low for gallery');
         return detection;
       }
 
@@ -1226,7 +1221,7 @@
 
       detection.paginationMethods = this.detectPaginationIndicators();
 
-      logger.log('Gallery detection complete:', detection);
+      this.logger.log('Gallery detection complete:', detection);
 
       this.notifyGalleryDetected(detection);
 
@@ -1413,9 +1408,9 @@
         chrome.runtime.sendMessage({
           type: MESSAGE_TYPES.CORE_GALLERY_DETECTED,
           data: detection
-        }).catch(err => logger.debug('Error sending gallery detection:', err));
+        }).catch(err => this.logger.debug('Error sending gallery detection:', err));
       } catch (error) {
-        logger.debug('Error notifying gallery detected:', error);
+        this.logger.debug('Error notifying gallery detected:', error);
       }
     }
   }
@@ -1423,10 +1418,9 @@
 
 
   // ===== src/content/pagination-engine.js =====
-  const logger = new Logger('PaginationEngine');
-
   class PaginationEngine {
     constructor(options = {}) {
+      this.logger = new Logger('PaginationEngine');
       this.method = options.method || 'auto';
       this.maxPages = options.maxPages || PAGINATION_CONFIG.MAX_PAGES;
       this.currentPage = 1;
@@ -1452,7 +1446,7 @@
 
     async start(method = 'auto') {
       if (this.isActive) {
-        logger.warn('Pagination already active');
+        this.logger.warn('Pagination already active');
         return;
       }
 
@@ -1462,18 +1456,18 @@
       this.currentPage = 1;
       this.contentHasher.clear();
 
-      logger.log(`Starting pagination with method: ${this.method}`);
+      this.logger.log(`Starting pagination with method: ${this.method}`);
 
       try {
         while (this.isActive && this.attempts < PAGINATION_CONFIG.MAX_ATTEMPTS && this.currentPage < this.maxPages) {
           const beforeHash = await this.contentHasher.hashContent(document.body);
 
-          logger.log(`Page ${this.currentPage}, attempt ${this.attempts + 1}`);
+          this.logger.log(`Page ${this.currentPage}, attempt ${this.attempts + 1}`);
 
           const success = await this.executeMethod();
 
           if (!success) {
-            logger.log('Pagination method returned false, stopping');
+            this.logger.log('Pagination method returned false, stopping');
             break;
           }
 
@@ -1484,7 +1478,7 @@
           const afterHash = await this.contentHasher.hashContent(document.body);
 
           if (this.contentHasher.isDuplicate(afterHash)) {
-            logger.log('Duplicate content detected, stopping pagination');
+            this.logger.log('Duplicate content detected, stopping pagination');
             break;
           }
 
@@ -1497,7 +1491,7 @@
           await this.waitForContent(paginationDelay);
         }
       } catch (error) {
-        logger.error('Pagination error:', error);
+        this.logger.error('Pagination error:', error);
       }
 
       this.stop();
@@ -1522,7 +1516,7 @@
         return await methodFunc.call(this);
       }
 
-      logger.warn(`Unknown pagination method: ${this.method}`);
+      this.logger.warn(`Unknown pagination method: ${this.method}`);
       return false;
     }
 
@@ -1530,26 +1524,26 @@
       const methods = await this.detectPaginationMethods();
 
       if (methods.nextButton.available) {
-        logger.log('Using Next Button method');
+        this.logger.log('Using Next Button method');
         return await this.paginateNextButton(methods.nextButton);
       } else if (methods.loadMore.available) {
-        logger.log('Using Load More method');
+        this.logger.log('Using Load More method');
         return await this.paginateLoadMore(methods.loadMore);
       } else if (methods.arrow.available) {
-        logger.log('Using Arrow method');
+        this.logger.log('Using Arrow method');
         return await this.paginateArrow(methods.arrow);
       } else if (methods.urlPattern.available) {
-        logger.log('Using URL Pattern method');
+        this.logger.log('Using URL Pattern method');
         return await this.paginateUrlPattern(methods.urlPattern);
       } else if (methods.api.available) {
-        logger.log('Using API method');
+        this.logger.log('Using API method');
         return await this.paginateAPI(methods.api);
       } else if (methods.infiniteScroll.available) {
-        logger.log('Using Infinite Scroll method');
+        this.logger.log('Using Infinite Scroll method');
         return await this.paginateInfiniteScroll();
       }
 
-      logger.warn('No pagination method detected');
+      this.logger.warn('No pagination method detected');
       return false;
     }
 
@@ -1592,7 +1586,7 @@
             };
           }
         } catch (e) {
-          logger.debug(`Error checking selector ${selector}:`, e);
+          this.logger.debug(`Error checking selector ${selector}:`, e);
         }
       }
 
@@ -1646,7 +1640,7 @@
             };
           }
         } catch (e) {
-          logger.debug(`Error checking selector ${selector}:`, e);
+          this.logger.debug(`Error checking selector ${selector}:`, e);
         }
       }
 
@@ -1696,7 +1690,7 @@
             };
           }
         } catch (e) {
-          logger.debug(`Error checking selector ${selector}:`, e);
+          this.logger.debug(`Error checking selector ${selector}:`, e);
         }
       }
 
@@ -1743,7 +1737,7 @@
           }
         }
       } catch (error) {
-        logger.error('Error detecting URL pattern:', error);
+        this.logger.error('Error detecting URL pattern:', error);
       }
 
       return { available: false };
@@ -1793,10 +1787,10 @@
         await this.waitForContent(500);
 
         element.click();
-        logger.log('Clicked next button');
+        this.logger.log('Clicked next button');
         return true;
       } catch (error) {
-        logger.error('Error clicking next button:', error);
+        this.logger.error('Error clicking next button:', error);
         return false;
       }
     }
@@ -1819,10 +1813,10 @@
         await this.waitForContent(500);
 
         element.click();
-        logger.log('Clicked load more button');
+        this.logger.log('Clicked load more button');
         return true;
       } catch (error) {
-        logger.error('Error clicking load more button:', error);
+        this.logger.error('Error clicking load more button:', error);
         return false;
       }
     }
@@ -1834,7 +1828,7 @@
         const targetScroll = scrollTarget.scrollHeight - window.innerHeight;
 
         if (currentScroll >= targetScroll - 100) {
-          logger.log('Already at bottom of page');
+          this.logger.log('Already at bottom of page');
           return false;
         }
 
@@ -1843,11 +1837,11 @@
           behavior: 'smooth'
         });
 
-        logger.log('Scrolled to bottom for infinite scroll');
+        this.logger.log('Scrolled to bottom for infinite scroll');
         await this.waitForContent(1000);
         return true;
       } catch (error) {
-        logger.error('Error performing infinite scroll:', error);
+        this.logger.error('Error performing infinite scroll:', error);
         return false;
       }
     }
@@ -1870,10 +1864,10 @@
         await this.waitForContent(500);
 
         element.click();
-        logger.log('Clicked arrow navigation');
+        this.logger.log('Clicked arrow navigation');
         return true;
       } catch (error) {
-        logger.error('Error clicking arrow:', error);
+        this.logger.error('Error clicking arrow:', error);
         return false;
       }
     }
@@ -1901,19 +1895,19 @@
         }
 
         if (nextUrl && nextUrl.href !== currentUrl.href) {
-          logger.log(`Navigating to: ${nextUrl.href}`);
+          this.logger.log(`Navigating to: ${nextUrl.href}`);
           window.location.href = nextUrl.href;
           return true;
         }
       } catch (error) {
-        logger.error('Error navigating to next page via URL pattern:', error);
+        this.logger.error('Error navigating to next page via URL pattern:', error);
       }
 
       return false;
     }
 
     async paginateAPI(method = null) {
-      logger.log('API pagination requires network monitoring integration');
+      this.logger.log('API pagination requires network monitoring integration');
       return false;
     }
 
@@ -1936,7 +1930,7 @@
     stop() {
       this.isActive = false;
       this.sendStatus('complete');
-      logger.log(`Pagination complete. Pages processed: ${this.currentPage}, Attempts: ${this.attempts}`);
+      this.logger.log(`Pagination complete. Pages processed: ${this.currentPage}, Attempts: ${this.attempts}`);
     }
 
     sendStatus(status) {
@@ -1952,9 +1946,9 @@
               (this.attempts >= PAGINATION_CONFIG.MAX_ATTEMPTS ? 'Max attempts reached' : 'Pagination complete') :
               'Paginating...'
           }
-        }).catch(err => logger.debug('Error sending status:', err));
+        }).catch(err => this.logger.debug('Error sending status:', err));
       } catch (error) {
-        logger.debug('Error sending pagination status:', error);
+        this.logger.debug('Error sending pagination status:', error);
       }
     }
   }
@@ -1962,7 +1956,7 @@
 
 
   // ===== src/content/content-main.js =====
-  const logger = new Logger('Content');
+  const contentLogger = new Logger('Content');
 
   let galleryDetector = null;
   let imageExtractor = null;
@@ -1970,7 +1964,7 @@
   let networkMonitor = null;
 
   function initialize() {
-    logger.log('Initializing StepGallery content script');
+    contentLogger.log('Initializing StepGallery content script');
 
     galleryDetector = new GalleryDetector();
     imageExtractor = new ImageExtractor();
@@ -1986,9 +1980,9 @@
     try {
       chrome.runtime.sendMessage({
         type: MESSAGE_TYPES.CORE_INIT
-      }).catch(err => logger.debug('Error sending init message:', err));
+      }).catch(err => contentLogger.debug('Error sending init message:', err));
     } catch (error) {
-      logger.debug('Error sending init:', error);
+      contentLogger.debug('Error sending init:', error);
     }
 
     setupMessageListeners();
@@ -1997,12 +1991,12 @@
       loadDebugPanel();
     }
 
-    logger.log('StepGallery content script initialized');
+    contentLogger.log('StepGallery content script initialized');
   }
 
   function setupMessageListeners() {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      logger.debug('Received message:', message.type);
+      contentLogger.debug('Received message:', message.type);
 
       try {
         if (message.type === MESSAGE_TYPES.CORE_PAGINATION_START) {
@@ -2035,7 +2029,7 @@
           return true;
         }
       } catch (error) {
-        logger.error('Error handling message:', error);
+        contentLogger.error('Error handling message:', error);
         sendResponse({ success: false, error: error.message });
       }
 
@@ -2046,7 +2040,7 @@
   async function handlePaginationStart(message, sendResponse) {
     try {
       const method = message.method || message.data?.method || 'auto';
-      logger.log(`Starting pagination with method: ${method}`);
+      contentLogger.log(`Starting pagination with method: ${method}`);
 
       const stored = await chrome.storage.local.get('settings');
       if (stored.settings) {
@@ -2080,18 +2074,18 @@
 
       sendResponse({ success: true });
     } catch (error) {
-      logger.error('Error starting pagination:', error);
+      contentLogger.error('Error starting pagination:', error);
       sendResponse({ success: false, error: error.message });
     }
   }
 
   function handlePaginationStop(message, sendResponse) {
     try {
-      logger.log('Stopping pagination');
+      contentLogger.log('Stopping pagination');
       paginationEngine.stop();
       sendResponse({ success: true });
     } catch (error) {
-      logger.error('Error stopping pagination:', error);
+      contentLogger.error('Error stopping pagination:', error);
       sendResponse({ success: false, error: error.message });
     }
   }
@@ -2101,7 +2095,7 @@
       const detection = await galleryDetector.detectGallery();
       sendResponse({ success: true, detection: detection });
     } catch (error) {
-      logger.error('Error detecting gallery:', error);
+      contentLogger.error('Error detecting gallery:', error);
       sendResponse({ success: false, error: error.message });
     }
   }
@@ -2124,7 +2118,7 @@
 
       sendResponse({ success: true, images: images });
     } catch (error) {
-      logger.error('Error extracting images:', error);
+      contentLogger.error('Error extracting images:', error);
       sendResponse({ success: false, error: error.message });
     }
   }
@@ -2134,7 +2128,7 @@
       const paginationInfo = networkMonitor.getLatestPaginationInfo();
       sendResponse({ success: true, paginationInfo: paginationInfo });
     } catch (error) {
-      logger.error('Error getting pagination info:', error);
+      contentLogger.error('Error getting pagination info:', error);
       sendResponse({ success: false, error: error.message });
     }
   }
@@ -2146,13 +2140,13 @@
       paginationEngine.contentHasher.clear();
       sendResponse({ success: true });
     } catch (error) {
-      logger.error('Error clearing data:', error);
+      contentLogger.error('Error clearing data:', error);
       sendResponse({ success: false, error: error.message });
     }
   }
 
   function loadDebugPanel() {
-    logger.log('Loading debug panel (dev mode)');
+    contentLogger.log('Loading debug panel (dev mode)');
 
   }
 

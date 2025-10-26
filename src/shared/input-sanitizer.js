@@ -1,9 +1,8 @@
 import { Logger } from './logger.js';
 
-const logger = new Logger('InputSanitizer');
-
 export class InputSanitizer {
   constructor(options = {}) {
+    this.logger = new Logger('InputSanitizer');
     this.options = {
       maxSelectorLength: options.maxSelectorLength || 10000,
       allowedSelectorChars: options.allowedSelectorChars || /^[a-zA-Z0-9\s\-_#.\[\]=:()>+~*,"'|^$]+$/,
@@ -66,28 +65,28 @@ export class InputSanitizer {
       }
 
       if (selector.length > this.options.maxSelectorLength) {
-        logger.warn('Selector exceeds maximum length:', selector.length);
+        this.logger.warn('Selector exceeds maximum length:', selector.length);
         this.stats.threatsBlocked++;
         return '';
       }
 
       for (const pattern of this.dangerousPatterns.selector) {
         if (pattern.test(selector)) {
-          logger.warn('Dangerous pattern detected in selector:', pattern);
+          this.logger.warn('Dangerous pattern detected in selector:', pattern);
           this.stats.threatsBlocked++;
           return '';
         }
       }
 
       if (!this.options.allowedSelectorChars.test(selector)) {
-        logger.warn('Selector contains invalid characters');
+        this.logger.warn('Selector contains invalid characters');
         this.stats.threatsBlocked++;
         return '';
       }
 
       return selector;
     } catch (error) {
-      logger.error('Error sanitizing selector:', error);
+      this.logger.error('Error sanitizing selector:', error);
       return '';
     }
   }
@@ -107,14 +106,14 @@ export class InputSanitizer {
       }
 
       if (url.length > this.options.maxUrlLength) {
-        logger.warn('URL exceeds maximum length:', url.length);
+        this.logger.warn('URL exceeds maximum length:', url.length);
         this.stats.threatsBlocked++;
         return '';
       }
 
       for (const pattern of this.dangerousPatterns.url) {
         if (pattern.test(url)) {
-          logger.warn('Dangerous pattern detected in URL:', pattern);
+          this.logger.warn('Dangerous pattern detected in URL:', pattern);
           this.stats.threatsBlocked++;
           return '';
         }
@@ -124,7 +123,7 @@ export class InputSanitizer {
         const urlObj = new URL(url);
         
         if (!this.options.allowedProtocols.includes(urlObj.protocol)) {
-          logger.warn('URL protocol not allowed:', urlObj.protocol);
+          this.logger.warn('URL protocol not allowed:', urlObj.protocol);
           this.stats.threatsBlocked++;
           return '';
         }
@@ -135,12 +134,12 @@ export class InputSanitizer {
           return url;
         }
         
-        logger.warn('Invalid URL format:', url);
+        this.logger.warn('Invalid URL format:', url);
         this.stats.threatsBlocked++;
         return '';
       }
     } catch (error) {
-      logger.error('Error sanitizing URL:', error);
+      this.logger.error('Error sanitizing URL:', error);
       return '';
     }
   }
@@ -161,7 +160,7 @@ export class InputSanitizer {
 
       for (const pattern of this.dangerousPatterns.path) {
         if (pattern.test(filename)) {
-          logger.warn('Path traversal attempt detected in filename');
+          this.logger.warn('Path traversal attempt detected in filename');
           this.stats.threatsBlocked++;
           filename = filename.replace(pattern, '');
         }
@@ -177,7 +176,7 @@ export class InputSanitizer {
 
       return filename || 'file';
     } catch (error) {
-      logger.error('Error sanitizing filename:', error);
+      this.logger.error('Error sanitizing filename:', error);
       return 'file';
     }
   }
