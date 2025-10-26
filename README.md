@@ -25,11 +25,10 @@ StepGallery is a professional Chrome extension that merges the best features of 
 6. **API-Based** - Monitors network requests for pagination endpoints
 7. **Auto-Detect** - Automatically selects best method
 
-### 📊 Multi-Format Export
-- **CSV** - Comma-separated values for spreadsheets
-- **Excel (XLSX)** - Full-featured spreadsheets with formatting
-- **JSON** - Structured data for developers
-- **HTML Report** - Beautiful, printable reports with thumbnails
+### 📊 CSV Export
+- **CSV** - Comma-separated values for spreadsheets and data analysis
+- Customizable field selection
+- Compatible with Excel, Google Sheets, and other spreadsheet applications
 
 ### ⬇️ Batch Downloading
 - Concurrent download management (configurable)
@@ -296,7 +295,7 @@ Default settings (customizable via UI):
 ### Export fails
 - Ensure images are collected first
 - Check selected fields are valid
-- Try exporting to different format
+- Verify CSV export is supported by your browser
 
 ### Downloads not starting
 - Check Chrome download permissions
@@ -309,9 +308,6 @@ Default settings (customizable via UI):
 - **Image Processing**: 100+ images/sec
 - **Export Speed**: 
   - CSV: ~1000 records/sec
-  - XLSX: ~500 records/sec
-  - JSON: ~2000 records/sec
-  - HTML: ~300 records/sec
 - **Download Concurrency**: 3 simultaneous (configurable)
 
 ## Privacy & Data Handling

@@ -53,7 +53,7 @@ export class ExportController {
       await chrome.offscreen.createDocument({
         url: 'offscreen/export-worker.html',
         reasons: ['DOM_PARSER'],
-        justification: 'Generate Excel/CSV/JSON/HTML export files using third-party libraries'
+        justification: 'Generate CSV export files using third-party libraries'
       });
 
       this.isOffscreenReady = true;

@@ -80,6 +80,5 @@ export const DEFAULT_SETTINGS = {
   batchSize: 0,
   downloadDelay: 0,
   exportFormats: ['csv'],
-  exportFields: ['filename', 'fileUrl', 'dimensions', 'sourcePage'],
-  exportMode: 'full'
+  exportFields: ['filename', 'fileUrl', 'dimensions', 'sourcePage']
 };
