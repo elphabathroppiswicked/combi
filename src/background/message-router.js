@@ -202,8 +202,8 @@ export class MessageRouter {
       const { url, filename, saveAs } = message.data;
       
       const downloadId = await chrome.downloads.download({
-        url: url,
-        filename: filename,
+        url,
+        filename,
         saveAs: saveAs !== undefined ? saveAs : true
       });
 
