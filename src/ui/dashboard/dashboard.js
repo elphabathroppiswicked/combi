@@ -311,7 +311,10 @@ async function startPagination() {
 
   } catch (error) {
     isPaginating = false;
-    console.error('Error starting pagination:', error);
+    // Don't log expected connection errors to console
+    if (!error.message.includes('Could not establish connection')) {
+      console.error('Error starting pagination:', error);
+    }
     alert('Error starting pagination: ' + error.message);
   }
 }
@@ -334,7 +337,10 @@ async function stopPagination() {
     isPaginating = false;
     document.getElementById('startPagination').disabled = false;
     document.getElementById('stopPagination').disabled = true;
-    console.error('Error stopping pagination:', error);
+    // Don't log expected connection errors to console
+    if (!error.message.includes('Could not establish connection')) {
+      console.error('Error stopping pagination:', error);
+    }
   }
 }
 
