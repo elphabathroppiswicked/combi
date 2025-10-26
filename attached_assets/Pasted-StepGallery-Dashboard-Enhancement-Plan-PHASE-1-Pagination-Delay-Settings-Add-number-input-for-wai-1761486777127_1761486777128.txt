@@ -1,0 +1,134 @@
+StepGallery Dashboard Enhancement Plan
+PHASE 1:Pagination Delay Settings
+Add number input for "wait before next page" (seconds) to dashboard.html
+
+Add number input for "scroll delay" (milliseconds) to dashboard.html
+
+Update constants.js with paginationDelay, waitAfterClick, waitForContent, scrollDelay defaults
+
+Add input event listeners in dashboard.js to save/load settings
+
+Modify pagination-engine.js to use dynamic settings instead of hardcoded values
+
+Concurrent Downloads UI
+Add number input (1-10 range) for concurrent downloads to dashboard.html
+
+Add event listener in dashboard.js with live value display
+
+Load and apply setting on dashboard initialization
+
+Batch Download Confirmation
+Add number input for batch size (0 = disabled) to dashboard.html
+
+Add batchSize: 0 to DEFAULTSETTINGS in constants.js
+
+Implement batch counter and pause logic in download-manager.js
+
+Create requestBatchConfirmation() method to send message to dashboard
+
+Add message listener in dashboard.js to show confirmation dialog
+
+Download Delay Between Files
+Add number input for delay between downloads (seconds) to dashboard.html
+
+Add downloadDelay: 0 to DEFAULTSETTINGS in constants.js
+
+Add await wait(downloadDelay) logic in download-manager.js download loop
+
+Add input event listener and settings sync in dashboard.js
+
+Subfolder UI Control
+Add text input for subfolder path to dashboard.html with help text
+
+Add input listener in dashboard.js to save downloadFolder setting
+
+Load downloadFolder value on dashboard initialization
+
+PHASE 2: Advanced Filename Tokens
+Token UI Expansion
+Add 15+ token buttons grouped by category: Basic, Date/Time, URL, Other
+
+Add "Token Examples" help section showing common patterns
+
+Add live filename preview element using sample image data
+Example URL: https://www.imago-images.com/bild/st/0492917022/w.jpg
+
+Pattern	Result	Explanation
+*subdirs0*.*ext*	bild.jpg	First subdirectory
+*subdirs1*.*ext*	st.jpg	Second subdirectory
+*subdirs2*.*ext*	0492917022.jpg	Third subdirectory
+*subdirsLast*.*ext*	0492917022.jpg	Last subdirectory before filename
+Filename Generator Module (NEW FILE: filename-generator.js)
+Create FilenameGenerator class with generate(image, pattern, index) method
+
+Add extractPathSegments(url) to split URL path into array
+
+Add helper methods: extractBaseName, extractExtension, extractDomain, extractHostname
+
+Implement standard tokens: *name*, *ext*, *num*, *num-3*, *num-5*
+
+Implement date/time tokens: *y*, *m*, *d*, *hh*, *mm*, *ss*, *date*, *time*, *datetime*
+
+Implement URL tokens: *url*, *domain*, *subdirs*, *subdirs-flat*, *curl*
+
+Implement advanced path tokens: *subdirs0*, *subdirs1*, *subdirs2*, *subdirs3*, *subdirsLast*
+
+Implement content tokens: *text*, *caption*, *page*
+
+Integrate Filename Generator
+Import FilenameGenerator in download-manager.js
+
+Instantiate this.filenameGenerator in constructor
+
+Replace inline token replacement logic with filenameGenerator.generate()
+
+Live Filename Preview
+Create updateFilenameExample() function in dashboard.js using sample image data
+
+Add input event listener on filenamePattern field for real-time preview
+
+Add <span id='filenameExample'> element to dashboard.html
+
+PHASE 3: CSV-Only Lightweight Mode 
+Export Mode Toggle
+Add radio buttons to dashboard.html: "Full mode" vs "CSV-only mode"
+
+Add exportMode: 'full' to DEFAULTSETTINGS in constants.js
+
+Add radio change listener in dashboard.js to show/hide full export options
+
+Auto-select CSV checkbox and deselect others in CSV-only mode
+
+Add styles in dashboard.css for radio buttons and show/hide transitions
+
+PHASE 4: Testing & Polish
+Input Validation
+Add min/max validation on all numeric inputs with visual feedback
+
+Add filename pattern validation (require *name* or *num* token)
+
+Add subfolder path validation (block invalid characters)
+
+Tooltips & Help
+Add title attributes to all new controls for hover tooltips
+
+Create collapsible help section with full token reference table
+
+Add tooltip and accordion styling in dashboard.css
+
+Reset to Defaults
+Add "Reset Settings" button to dashboard.html
+
+Create handler in dashboard.js to restore DEFAULTSETTINGS, update UI, save to storage
+
+Settings Persistence
+Test all new settings save/load correctly from chrome.storage
+
+Verify new settings merge properly with existing defaults in state-manager.js
+
+Documentation
+Add token reference guide with examples to README.md
+
+Add settings guide explaining all controls to README.md
+
+Update IMPLEMENTATION.md with new architecture and modules

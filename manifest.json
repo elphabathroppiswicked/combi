@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "StepGallery - Unified Gallery Scraper",
+  "version": "3.0.0",
+  "description": "Professional image gallery detection, pagination, and export with advanced features. Combines smart pagination detection with multi-format export (CSV, Excel, JSON, HTML).",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "downloads",
+    "scripting",
+    "tabs",
+    "notifications",
+    "sidePanel",
+    "alarms",
+    "offscreen",
+    "webRequest"
+  ],
+  
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-bundle.js"],
+      "run_at": "document_end"
+    }
+  ],
+  
+  "side_panel": {
+    "default_path": "src/ui/dashboard/dashboard.html"
+  },
+  
+  "action": {
+    "default_title": "StepGallery - Gallery Scraper",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*", "lib/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: https:; connect-src 'self' https:; style-src 'self' 'unsafe-inline'"
+  }
+}

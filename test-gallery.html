@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Gallery - StepGallery Extension Testing</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    
+    .instructions {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      border-left: 4px solid #667eea;
+    }
+    
+    .instructions h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+    
+    .instructions ol {
+      margin-left: 20px;
+    }
+    
+    .instructions li {
+      margin: 10px 0;
+    }
+    
+    .page-indicator {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #667eea;
+    }
+    
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .gallery-item {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+    }
+    
+    .gallery-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .gallery-item img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+    }
+    
+    .gallery-item-info {
+      padding: 15px;
+    }
+    
+    .gallery-item-info h3 {
+      color: #333;
+      margin-bottom: 5px;
+      font-size: 1em;
+    }
+    
+    .gallery-item-info p {
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 30px 0;
+    }
+    
+    .pagination button,
+    .pagination a {
+      padding: 12px 24px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .pagination button:hover,
+    .pagination a:hover {
+      background: #764ba2;
+      transform: translateY(-2px);
+    }
+    
+    .pagination button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .load-more {
+      text-align: center;
+      margin: 30px 0;
+    }
+    
+    .load-more button {
+      padding: 15px 40px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1.1em;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    
+    .load-more button:hover {
+      background: #218838;
+      transform: scale(1.05);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🖼️ Test Gallery</h1>
+    <p>Use this page to test your StepGallery extension</p>
+  </div>
+
+  <div class="instructions">
+    <h2>📋 Testing Instructions</h2>
+    <ol>
+      <li>Make sure you have installed the StepGallery extension in Chrome</li>
+      <li>Click the StepGallery icon in your Chrome toolbar</li>
+      <li>The side panel should open and detect this gallery automatically</li>
+      <li>Try different pagination methods (Auto-Detect should work best)</li>
+      <li>Click "Start Pagination" and watch it collect images from all pages</li>
+      <li>Test the export features (CSV, Excel, JSON, HTML)</li>
+      <li>Try the batch download with different filename patterns</li>
+    </ol>
+  </div>
+
+  <div class="page-indicator">
+    📄 Page <span id="currentPage">1</span> of 5
+  </div>
+
+  <div class="gallery" id="gallery">
+  </div>
+
+  <div class="pagination">
+    <button id="prevBtn" onclick="previousPage()">← Previous</button>
+    <button id="nextBtn" class="next" onclick="nextPage()">Next →</button>
+  </div>
+
+  <div class="load-more">
+    <button onclick="loadMore()">Load More Images</button>
+  </div>
+
+  <footer>
+    <p>StepGallery Test Gallery &copy; 2025</p>
+    <p style="margin-top: 10px;"><a href="index.html" style="color: #667eea;">← Back to Home</a></p>
+  </footer>
+
+  <script>
+    let currentPage = 1;
+    const maxPages = 5;
+    const imagesPerPage = 12;
+    
+    const imageData = [
+      { title: 'Mountain Landscape', category: 'Nature' },
+      { title: 'Ocean Sunset', category: 'Nature' },
+      { title: 'Forest Trail', category: 'Nature' },
+      { title: 'Desert Dunes', category: 'Nature' },
+      { title: 'Waterfall', category: 'Nature' },
+      { title: 'Northern Lights', category: 'Nature' },
+      { title: 'City Skyline', category: 'Urban' },
+      { title: 'Street Photography', category: 'Urban' },
+      { title: 'Architecture', category: 'Urban' },
+      { title: 'Night City', category: 'Urban' },
+      { title: 'Bridge', category: 'Urban' },
+      { title: 'Modern Building', category: 'Urban' }
+    ];
+
+    function generateImages(page) {
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+      
+      const startIndex = (page - 1) * imagesPerPage;
+      
+      for (let i = 0; i < imagesPerPage; i++) {
+        const imageIndex = (startIndex + i) % imageData.length;
+        const image = imageData[imageIndex];
+        const imgNumber = startIndex + i + 1;
+        
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.innerHTML = `
+          <img src="https://picsum.photos/400/300?random=${imgNumber}" 
+               alt="${image.title}" 
+               loading="lazy">
+          <div class="gallery-item-info">
+            <h3>${image.title} #${imgNumber}</h3>
+            <p>${image.category} | Image ${imgNumber}</p>
+          </div>
+        `;
+        gallery.appendChild(item);
+      }
+    }
+
+    function updatePageIndicator() {
+      document.getElementById('currentPage').textContent = currentPage;
+      document.getElementById('prevBtn').disabled = currentPage === 1;
+      document.getElementById('nextBtn').disabled = currentPage === maxPages;
+    }
+
+    function nextPage() {
+      if (currentPage < maxPages) {
+        currentPage++;
+        generateImages(currentPage);
+        updatePageIndicator();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        const url = new URL(window.location);
+        url.searchParams.set('page', currentPage);
+        window.history.pushState({}, '', url);
+      }
+    }
+
+    function previousPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        generateImages(currentPage);
+        updatePageIndicator();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        const url = new URL(window.location);
+        url.searchParams.set('page', currentPage);
+        window.history.pushState({}, '', url);
+      }
+    }
+
+    function loadMore() {
+      const gallery = document.getElementById('gallery');
+      const currentCount = gallery.children.length;
+      
+      for (let i = 0; i < 6; i++) {
+        const imageIndex = (currentCount + i) % imageData.length;
+        const image = imageData[imageIndex];
+        const imgNumber = currentCount + i + 1;
+        
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.innerHTML = `
+          <img src="https://picsum.photos/400/300?random=${imgNumber + 1000}" 
+               alt="${image.title}" 
+               loading="lazy">
+          <div class="gallery-item-info">
+            <h3>${image.title} #${imgNumber}</h3>
+            <p>${image.category} | Image ${imgNumber}</p>
+          </div>
+        `;
+        gallery.appendChild(item);
+      }
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageParam = urlParams.get('page');
+    if (pageParam) {
+      currentPage = parseInt(pageParam);
+    }
+    
+    generateImages(currentPage);
+    updatePageIndicator();
+
+    window.addEventListener('popstate', function() {
+      const url = new URL(window.location);
+      const page = url.searchParams.get('page');
+      if (page) {
+        currentPage = parseInt(page);
+        generateImages(currentPage);
+        updatePageIndicator();
+      }
+    });
+  </script>
+</body>
+</html>

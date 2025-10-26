@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StepGallery Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard">
+    <header class="header">
+      <h1>🎯 StepGallery</h1>
+      <p class="version">v3.0.0</p>
+    </header>
+
+    <section class="gallery-status">
+      <h2>Gallery Detection</h2>
+      <div id="galleryStatus" class="status-box">
+        <p id="galleryMessage">Analyzing page...</p>
+        <div class="status-details">
+          <span id="galleryType"></span>
+          <span id="imageCount"></span>
+          <span id="confidence"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="pagination-section">
+      <h2>Pagination Control</h2>
+      
+      <div class="control-group">
+        <label for="paginationMethod">Method:</label>
+        <select id="paginationMethod">
+          <option value="auto">Auto-Detect</option>
+          <option value="nextButton">Next Button</option>
+          <option value="loadMore">Load More</option>
+          <option value="infiniteScroll">Infinite Scroll</option>
+          <option value="arrow">Arrow Navigation</option>
+          <option value="urlPattern">URL Pattern</option>
+          <option value="api">API-Based</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="paginationDelay">Wait Before Next Page (seconds):</label>
+        <input type="number" id="paginationDelay" min="0" max="30" step="0.5" value="2" title="Seconds to wait after clicking next/load more button">
+        <p class="help-text">Time to wait after clicking/loading before proceeding to next page</p>
+      </div>
+
+      <div class="control-group">
+        <label for="scrollDelay">Scroll Delay (milliseconds):</label>
+        <input type="number" id="scrollDelay" min="0" max="5000" step="100" value="500" title="Milliseconds to wait after scrolling (for lazy loading)">
+        <p class="help-text">Delay between scroll actions during pagination</p>
+      </div>
+
+      <div class="button-group">
+        <button id="startPagination" class="btn btn-primary">▶ Start Pagination</button>
+        <button id="stopPagination" class="btn btn-secondary">⏹ Stop</button>
+      </div>
+
+      <div id="paginationStatus" class="status-box">
+        <p id="paginationMessage">Ready</p>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <p id="paginationStats"></p>
+      </div>
+    </section>
+
+    <section class="images-section">
+      <h2>Collected Images</h2>
+      <div class="image-stats">
+        <span id="totalImages">0 images</span>
+        <button id="clearImages" class="btn btn-small">Clear All</button>
+      </div>
+      
+      <div id="imageGrid" class="image-grid"></div>
+    </section>
+
+    <section class="export-section">
+      <h2>Export Options</h2>
+      
+      <div class="export-mode-selection">
+        <label><input type="radio" name="exportMode" value="full" checked> Full Export Mode</label>
+        <label><input type="radio" name="exportMode" value="csv-only"> CSV-Only Mode</label>
+        <p class="mode-description">
+          <strong>Full mode:</strong> Export to multiple formats (CSV, Excel, JSON, HTML)<br>
+          <strong>CSV-only mode:</strong> Quick export to CSV only (hides other options for simplicity)
+        </p>
+      </div>
+
+      <div class="csv-only-message" style="display: none;">
+        📋 CSV-Only Mode Active - Quick export with all fields included
+      </div>
+
+      <div class="format-selection">
+        <label><input type="checkbox" id="exportCSV" class="export-format" checked> CSV</label>
+        <label><input type="checkbox" id="exportXLSX" class="export-format"> Excel (XLSX)</label>
+        <label><input type="checkbox" id="exportJSON" class="export-format"> JSON</label>
+        <label><input type="checkbox" id="exportHTML" class="export-format"> HTML Report</label>
+      </div>
+
+      <div class="field-selection">
+        <h3>Fields to Include</h3>
+        <div class="field-grid">
+          <label><input type="checkbox" class="export-field" value="filename" checked> Filename</label>
+          <label><input type="checkbox" class="export-field" value="fileUrl" checked> Full URL</label>
+          <label><input type="checkbox" class="export-field" value="thumbnailUrl"> Thumbnail URL</label>
+          <label><input type="checkbox" class="export-field" value="dimensions" checked> Dimensions</label>
+          <label><input type="checkbox" class="export-field" value="caption"> Caption</label>
+          <label><input type="checkbox" class="export-field" value="sourcePage" checked> Source Page</label>
+          <label><input type="checkbox" class="export-field" value="pageNumber"> Page Number</label>
+          <label><input type="checkbox" class="export-field" value="extractedAt"> Extracted At</label>
+        </div>
+      </div>
+
+      <button id="exportAllFormats" class="btn btn-primary btn-large">📊 Export Selected Formats</button>
+    </section>
+
+    <section class="download-section">
+      <h2>Batch Download</h2>
+      
+      <div class="control-group">
+        <label for="filenamePattern">Filename Pattern:</label>
+        <input type="text" id="filenamePattern" value="*num-3*-*name*.*ext*" class="input-full">
+        <p class="help-text">Example: <span id="filenameExample">001-sunset.jpg</span></p>
+        <p id="patternWarning" class="pattern-warning" style="display: none;"></p>
+      </div>
+
+      <div class="pattern-tokens">
+        <div class="token-group">
+          <h4 class="token-group-title">Basic</h4>
+          <div class="token-group-buttons">
+            <button class="token-btn" data-token="*num*" title="Sequential number (1, 2, 3)">*num*</button>
+            <button class="token-btn" data-token="*num-3*" title="3-digit padded number (001, 002)">*num-3*</button>
+            <button class="token-btn" data-token="*num-5*" title="5-digit padded number (00001)">*num-5*</button>
+            <button class="token-btn" data-token="*name*" title="Filename without extension">*name*</button>
+            <button class="token-btn" data-token="*ext*" title="File extension">*ext*</button>
+            <button class="token-btn" data-token="*fullname*" title="Full filename with extension">*fullname*</button>
+          </div>
+        </div>
+
+        <div class="token-group">
+          <h4 class="token-group-title">Date/Time</h4>
+          <div class="token-group-buttons">
+            <button class="token-btn" data-token="*y*" title="Year (2025)">*y*</button>
+            <button class="token-btn" data-token="*m*" title="Month (01-12)">*m*</button>
+            <button class="token-btn" data-token="*d*" title="Day (01-31)">*d*</button>
+            <button class="token-btn" data-token="*hh*" title="Hour (00-23)">*hh*</button>
+            <button class="token-btn" data-token="*mm*" title="Minute (00-59)">*mm*</button>
+            <button class="token-btn" data-token="*ss*" title="Second (00-59)">*ss*</button>
+            <button class="token-btn" data-token="*date*" title="Full date (2025-10-26)">*date*</button>
+            <button class="token-btn" data-token="*time*" title="Full time (14-30-00)">*time*</button>
+            <button class="token-btn" data-token="*datetime*" title="Date and time">*datetime*</button>
+          </div>
+        </div>
+
+        <div class="token-group">
+          <h4 class="token-group-title">URL Path</h4>
+          <div class="token-group-buttons">
+            <button class="token-btn" data-token="*domain*" title="Domain (example-com)">*domain*</button>
+            <button class="token-btn" data-token="*hostname*" title="Hostname (example.com)">*hostname*</button>
+            <button class="token-btn" data-token="*subdirs0*" title="First directory">*subdirs0*</button>
+            <button class="token-btn" data-token="*subdirs1*" title="Second directory">*subdirs1*</button>
+            <button class="token-btn" data-token="*subdirs2*" title="Third directory">*subdirs2*</button>
+            <button class="token-btn" data-token="*subdirs3*" title="Fourth directory">*subdirs3*</button>
+            <button class="token-btn" data-token="*subdirsLast*" title="Last directory before filename">*subdirsLast*</button>
+          </div>
+        </div>
+
+        <div class="token-group">
+          <h4 class="token-group-title">Other</h4>
+          <div class="token-group-buttons">
+            <button class="token-btn" data-token="*page*" title="Page number">*page*</button>
+            <button class="token-btn" data-token="*caption*" title="Image caption/alt text">*caption*</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="token-examples">
+        <h4>Common Pattern Examples:</h4>
+        <ul class="example-list">
+          <li><code>*num-3*-*name*.*ext*</code> → 001-sunset.jpg</li>
+          <li><code>*date*_*num*.*ext*</code> → 2025-10-26_1.jpg</li>
+          <li><code>*subdirs0*/*subdirs1*_*num-3*.*ext*</code> → bild/st_001.jpg</li>
+          <li><code>*domain*-*page*-*num-5*.*ext*</code> → example-com-1-00001.jpg</li>
+          <li><code>*y*-*m*-*d*/*caption*.*ext*</code> → 2025-10-26/beautiful-sunset.jpg</li>
+        </ul>
+      </div>
+
+      <div class="control-group">
+        <label for="downloadFolder">Download Subfolder (optional):</label>
+        <input type="text" id="downloadFolder" placeholder="e.g., gallery-images" class="input-full" title="Subfolder name within Downloads directory">
+        <p class="help-text">Specify a subfolder within Downloads. Leave empty for Downloads root</p>
+        <p id="folderWarning" class="pattern-warning" style="display: none;"></p>
+      </div>
+
+      <div class="control-group">
+        <label for="concurrentDownloads">Concurrent Downloads: <span id="concurrentValue">3</span></label>
+        <input type="number" id="concurrentDownloads" min="1" max="10" value="3" title="Number of simultaneous downloads (1-10)">
+        <p class="help-text">Number of simultaneous downloads (1-10)</p>
+      </div>
+
+      <div class="control-group">
+        <label for="downloadDelay">Delay Between Downloads (seconds):</label>
+        <input type="number" id="downloadDelay" min="0" max="60" step="0.5" value="0" title="Seconds to wait between each file download">
+        <p class="help-text">Wait time between each file download (0 = no delay)</p>
+      </div>
+
+      <div class="control-group">
+        <label for="batchSize">Batch Confirmation Size:</label>
+        <input type="number" id="batchSize" min="0" max="1000" step="10" value="0" title="Pause after N downloads for confirmation (0=disabled)">
+        <p class="help-text">Pause and confirm after this many downloads (0 = disabled)</p>
+      </div>
+
+      <button id="downloadImages" class="btn btn-primary btn-large">⬇ Download All Images</button>
+
+      <div id="downloadStatus" class="status-box" style="display: none;">
+        <p id="downloadMessage"></p>
+        <div class="progress-bar">
+          <div id="downloadProgress" class="progress-fill"></div>
+        </div>
+        <p id="downloadStats"></p>
+      </div>
+
+      <button id="helpToggle" class="help-toggle">📖 Show Help & Token Reference</button>
+
+      <div id="helpSection" class="help-section" style="display: none;">
+        <h3>Complete Token Reference</h3>
+        <table class="token-table">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Description</th>
+              <th>Example Output</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>*num*</code></td><td>Sequential number</td><td>1, 2, 3</td></tr>
+            <tr><td><code>*num-3*</code></td><td>3-digit padded number</td><td>001, 002, 003</td></tr>
+            <tr><td><code>*num-5*</code></td><td>5-digit padded number</td><td>00001, 00002</td></tr>
+            <tr><td><code>*name*</code></td><td>Filename without extension</td><td>sunset</td></tr>
+            <tr><td><code>*ext*</code></td><td>File extension</td><td>jpg, png</td></tr>
+            <tr><td><code>*fullname*</code></td><td>Full filename with extension</td><td>sunset.jpg</td></tr>
+            <tr><td><code>*y*</code></td><td>Year</td><td>2025</td></tr>
+            <tr><td><code>*m*</code></td><td>Month (01-12)</td><td>10</td></tr>
+            <tr><td><code>*d*</code></td><td>Day (01-31)</td><td>26</td></tr>
+            <tr><td><code>*hh*</code></td><td>Hour (00-23)</td><td>14</td></tr>
+            <tr><td><code>*mm*</code></td><td>Minute (00-59)</td><td>30</td></tr>
+            <tr><td><code>*ss*</code></td><td>Second (00-59)</td><td>45</td></tr>
+            <tr><td><code>*date*</code></td><td>Full date (YYYY-MM-DD)</td><td>2025-10-26</td></tr>
+            <tr><td><code>*time*</code></td><td>Full time (HH-MM-SS)</td><td>14-30-45</td></tr>
+            <tr><td><code>*datetime*</code></td><td>Date and time</td><td>2025-10-26_14-30-45</td></tr>
+            <tr><td><code>*domain*</code></td><td>Domain (sanitized)</td><td>example-com</td></tr>
+            <tr><td><code>*hostname*</code></td><td>Hostname</td><td>example.com</td></tr>
+            <tr><td><code>*subdirs0*</code></td><td>First directory in URL path</td><td>gallery</td></tr>
+            <tr><td><code>*subdirs1*</code></td><td>Second directory in URL path</td><td>photos</td></tr>
+            <tr><td><code>*subdirs2*</code></td><td>Third directory in URL path</td><td>2025</td></tr>
+            <tr><td><code>*subdirs3*</code></td><td>Fourth directory in URL path</td><td>october</td></tr>
+            <tr><td><code>*subdirsLast*</code></td><td>Last directory before filename</td><td>thumbnails</td></tr>
+            <tr><td><code>*page*</code></td><td>Page number</td><td>1, 2, 3</td></tr>
+            <tr><td><code>*caption*</code></td><td>Image caption/alt text</td><td>Beautiful-Sunset</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Settings Guide</h3>
+        <dl class="settings-guide">
+          <dt>Pagination Delay</dt>
+          <dd>Wait time (0-30 seconds) after clicking next/load more before proceeding. Increase if pages load slowly.</dd>
+          
+          <dt>Scroll Delay</dt>
+          <dd>Delay (0-5000 ms) between scroll actions for infinite scroll. Lower = faster, but may miss content.</dd>
+          
+          <dt>Concurrent Downloads</dt>
+          <dd>Number (1-10) of simultaneous downloads. More = faster, but may strain bandwidth or trigger rate limits.</dd>
+          
+          <dt>Download Delay</dt>
+          <dd>Wait time (0-60 seconds) between individual downloads. Use to avoid rate limiting on strict servers.</dd>
+          
+          <dt>Batch Confirmation Size</dt>
+          <dd>Pause after N downloads (0-1000) for user confirmation. Set to 0 to disable. Useful for large batches.</dd>
+          
+          <dt>Download Subfolder</dt>
+          <dd>Optional subfolder name within Downloads directory. Leave empty to save directly to Downloads.</dd>
+          
+          <dt>Filename Pattern</dt>
+          <dd>Must include at least one of: *name*, *num*, *num-3*, or *num-5*. Use tokens above to build custom patterns.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="reset-section">
+      <button id="resetSettings" class="btn btn-reset">⚠️ Reset All Settings to Defaults</button>
+    </section>
+
+    <footer class="footer">
+      <p>StepGallery &copy; 2025 | Privacy-First | MV3 Compliant</p>
+    </footer>
+  </div>
+
+  <script src="dashboard.js" type="module"></script>
+</body>
+</html>

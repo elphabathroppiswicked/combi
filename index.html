@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StepGallery - Chrome Extension Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      background: white;
+      border-radius: 10px;
+      padding: 40px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 3em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .version {
+      color: #666;
+      font-size: 1.2em;
+    }
+    
+    .main-content {
+      background: white;
+      border-radius: 10px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+    }
+    
+    h2 {
+      color: #667eea;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 2em;
+    }
+    
+    h3 {
+      color: #764ba2;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 1.5em;
+    }
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+    
+    .feature-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    
+    .feature-card h4 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    
+    .install-steps {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .install-steps ol {
+      margin-left: 20px;
+    }
+    
+    .install-steps li {
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 20px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 15px 30px;
+      font-size: 1.1em;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.3s;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+    
+    .btn-secondary:hover {
+      background: #667eea;
+      color: white;
+    }
+    
+    .alert {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    
+    .alert-info {
+      background: #d1ecf1;
+      border-left-color: #17a2b8;
+    }
+    
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+    
+    footer {
+      text-align: center;
+      color: white;
+      padding: 20px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎯 StepGallery</h1>
+      <p class="version">Chrome Extension v3.0.0</p>
+      <p style="margin-top: 10px; font-size: 1.2em;">Unified Gallery Scraper & Image Exporter</p>
+    </header>
+
+    <div class="main-content">
+      <div class="alert alert-info">
+        <strong>📌 Note:</strong> This is a Chrome Extension project. To use it, you need to load it into Google Chrome as an unpacked extension. This demo site provides installation instructions and a test gallery page.
+      </div>
+
+      <h2>🚀 Quick Start</h2>
+      <div class="install-steps">
+        <h3>Installation Steps:</h3>
+        <ol>
+          <li><strong>Download the Extension:</strong> Download all files from this repository</li>
+          <li><strong>Open Chrome Extensions:</strong> Navigate to <code>chrome://extensions/</code></li>
+          <li><strong>Enable Developer Mode:</strong> Toggle the "Developer mode" switch in the top-right corner</li>
+          <li><strong>Load Unpacked:</strong> Click "Load unpacked" button</li>
+          <li><strong>Select Directory:</strong> Choose the <code>StepGallery</code> folder containing <code>manifest.json</code></li>
+          <li><strong>Verify:</strong> Extension icon should appear in your Chrome toolbar</li>
+        </ol>
+      </div>
+
+      <div class="button-group">
+        <a href="test-gallery.html" class="btn btn-primary">🖼️ Test Gallery Page</a>
+        <a href="README.md" class="btn btn-secondary">📖 Read Documentation</a>
+      </div>
+
+      <h2>✨ Key Features</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h4>🎯 Smart Detection</h4>
+          <p>Automatically detects image galleries on any webpage with intelligent pattern recognition.</p>
+        </div>
+        <div class="feature-card">
+          <h4>📄 7 Pagination Methods</h4>
+          <p>Next button, load more, infinite scroll, arrow navigation, URL patterns, API-based, and auto-detect.</p>
+        </div>
+        <div class="feature-card">
+          <h4>📊 Multi-Format Export</h4>
+          <p>Export to CSV, Excel (XLSX), JSON, or beautiful HTML reports with thumbnails.</p>
+        </div>
+        <div class="feature-card">
+          <h4>⬇️ Batch Downloads</h4>
+          <p>Download all gallery images with custom filename patterns and concurrent download management.</p>
+        </div>
+        <div class="feature-card">
+          <h4>🔒 Privacy First</h4>
+          <p>No external API calls, no tracking, all processing happens locally in your browser.</p>
+        </div>
+        <div class="feature-card">
+          <h4>⚡ MV3 Compliant</h4>
+          <p>Built for Chrome 2025 with Manifest V3 for future-proof compatibility.</p>
+        </div>
+      </div>
+
+      <h2>📝 How to Use</h2>
+      <div class="install-steps">
+        <ol>
+          <li>Navigate to any webpage with an image gallery</li>
+          <li>Click the StepGallery icon in your Chrome toolbar</li>
+          <li>The side panel will open showing gallery detection results</li>
+          <li>Select a pagination method or use "Auto-Detect"</li>
+          <li>Click "Start Pagination" to collect images across multiple pages</li>
+          <li>Export data in your preferred format or download all images</li>
+        </ol>
+      </div>
+
+      <h2>🧪 Testing the Extension</h2>
+      <p>We've provided a test gallery page for you to verify the extension works correctly:</p>
+      <div class="button-group">
+        <a href="test-gallery.html" class="btn btn-primary">Open Test Gallery →</a>
+      </div>
+      <p style="margin-top: 15px;">The test page includes a sample image gallery with pagination that you can use to test all features of the extension.</p>
+
+      <h2>🎨 Filename Pattern Tokens</h2>
+      <p>Customize your downloaded filenames using these tokens:</p>
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <ul style="list-style: none;">
+          <li><code>*num*</code> - Image number (1, 2, 3...)</li>
+          <li><code>*num-3*</code> - Padded number (001, 002, 003...)</li>
+          <li><code>*name*</code> - Original filename without extension</li>
+          <li><code>*ext*</code> - File extension</li>
+          <li><code>*date*</code> - Current date (YYYY-MM-DD)</li>
+          <li><code>*time*</code> - Current time (HH-MM-SS)</li>
+          <li><code>*page*</code> - Page number</li>
+          <li><code>*caption*</code> - Image caption/alt text</li>
+          <li><code>*domain*</code> - Website domain</li>
+        </ul>
+      </div>
+
+      <h2>⚙️ Technical Details</h2>
+      <ul style="margin-left: 20px;">
+        <li><strong>Type:</strong> Chrome Extension (Manifest V3)</li>
+        <li><strong>Architecture:</strong> Service Worker + Content Scripts + Side Panel</li>
+        <li><strong>Libraries:</strong> PapaParse (CSV), SheetJS (Excel) - Self-hosted</li>
+        <li><strong>Security:</strong> Input sanitization, CSP compliance, no CDN dependencies</li>
+        <li><strong>Compatibility:</strong> Chrome 115+ (2025 compliant)</li>
+      </ul>
+
+      <div class="alert" style="margin-top: 30px;">
+        <strong>⚠️ Important:</strong> This extension is designed for legitimate use cases like research, archival, and content management. Always respect website terms of service and copyright laws.
+      </div>
+    </div>
+
+    <footer>
+      <p>StepGallery v3.0.0 &copy; 2025 | Privacy-First | MV3 Compliant</p>
+      <p style="margin-top: 10px; opacity: 0.8;">Professional Image Gallery Management for Chrome</p>
+    </footer>
+  </div>
+</body>
+</html>
